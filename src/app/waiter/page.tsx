@@ -1,0 +1,222 @@
+"use client";
+
+import { useState } from 'react';
+import { useAppState } from '@/hooks/use-app-state';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { OrderItem, MenuItem } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+
+function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
+  const statusConfig = {
+    free: { text: 'Libre', color: 'bg-green-100 text-green-800 border-green-300', icon: CircleUserRound },
+    occupied: { text: 'Ocupada', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: Utensils },
+    'needs-attention': { text: 'Llamando', color: 'bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse', icon: BellRing },
+  };
+
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.free;
+  const Icon = config.icon;
+
+  return (
+    <Card
+      onClick={onSelect}
+      className={cn("cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1", config.color)}
+    >
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-bold">Mesa {tableId}</CardTitle>
+        <Icon className="h-6 w-6" />
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm font-semibold">{config.text}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const { state, dispatch, getMenuItem, getOrderForTable } = useAppState();
+  const { toast } = useToast();
+  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
+
+  const existingOrder = getOrderForTable(tableId);
+
+  const addToOrder = (item: MenuItem) => {
+    if (item.stock === 0) {
+        toast({ title: "Agotado", description: `${item.name} no está disponible.`, variant: "destructive" });
+        return;
+    }
+    setCurrentOrderItems(prev => {
+        const existing = prev.find(oi => oi.menuItemId === item.id);
+        if (existing) {
+            return prev.map(oi => oi.menuItemId === item.id ? { ...oi, quantity: oi.quantity + 1 } : oi);
+        }
+        return [...prev, { menuItemId: item.id, quantity: 1 }];
+    });
+  };
+
+  const removeFromOrder = (itemId: string) => {
+      setCurrentOrderItems(prev => {
+        const existing = prev.find(oi => oi.menuItemId === itemId);
+        if (existing && existing.quantity > 1) {
+            return prev.map(oi => oi.menuItemId === itemId ? { ...oi, quantity: oi.quantity - 1 } : oi);
+        }
+        return prev.filter(oi => oi.menuItemId !== itemId);
+      });
+  };
+
+  const submitOrder = () => {
+    if (currentOrderItems.length === 0) {
+        toast({ title: "Orden Vacía", description: "Agregue al menos un item para enviar el pedido.", variant: "destructive"});
+        return;
+    }
+    dispatch({type: 'CREATE_ORDER', payload: { tableId, items: currentOrderItems }});
+    toast({ title: "Pedido Enviado", description: `El pedido para la mesa ${tableId} ha sido enviado a la cocina.`});
+    setCurrentOrderItems([]);
+    onOpenChange(false);
+  };
+  
+  const handleOpenChange = (open: boolean) => {
+    if (open && state.tables.find(t => t.id === tableId)?.status === 'needs-attention') {
+        dispatch({ type: 'UPDATE_TABLE_STATUS', payload: { tableId, status: 'occupied' } });
+    }
+    onOpenChange(open);
+  }
+
+  const getTotal = () => {
+    return currentOrderItems.reduce((total, orderItem) => {
+        const menuItem = getMenuItem(orderItem.menuItemId);
+        return total + (menuItem ? menuItem.price * orderItem.quantity : 0);
+    }, 0);
+  };
+
+  const renderExistingOrder = () => (
+    <div>
+        <h3 className="font-semibold mb-2">Pedido Actual</h3>
+        <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
+        <div className="space-y-2">
+            {existingOrder?.items.map(item => {
+                const menuItem = getMenuItem(item.menuItemId);
+                return (
+                    <div key={item.menuItemId} className="flex justify-between items-center text-sm">
+                        <span>{menuItem?.name} x {item.quantity}</span>
+                        <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+  );
+
+  return (
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
+        <SheetHeader>
+          <SheetTitle>Mesa {tableId}</SheetTitle>
+          <SheetDescription>
+            {existingOrder ? "Gestionar pedido existente." : "Tome un nuevo pedido para esta mesa."}
+          </SheetDescription>
+        </SheetHeader>
+        
+        {existingOrder ? renderExistingOrder() : (
+        <>
+            <div className="flex-1 overflow-y-auto pr-4 -mr-4">
+            <h3 className="font-semibold mb-2">Añadir al Pedido</h3>
+            <div className="space-y-2">
+                {state.menuItems.map(item => (
+                <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                    <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                    </div>
+                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)} disabled={item.stock === 0}>
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
+                ))}
+            </div>
+            </div>
+
+            <div className="border-t pt-4">
+            <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
+            {currentOrderItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Añada items al pedido.</p>
+            ) : (
+                <div className="space-y-2">
+                {currentOrderItems.map(orderItem => {
+                    const menuItem = getMenuItem(orderItem.menuItemId);
+                    if (!menuItem) return null;
+                    return (
+                    <div key={orderItem.menuItemId} className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium">{menuItem.name}</p>
+                            <p className="text-sm text-muted-foreground">${menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button size="icon" variant="ghost" onClick={() => removeFromOrder(orderItem.menuItemId)}>
+                                {orderItem.quantity > 1 ? <Minus className="h-4 w-4" /> : <Trash2 className="h-4 w-4 text-destructive"/>}
+                            </Button>
+                            <span className="w-6 text-center">{orderItem.quantity}</span>
+                            <Button size="icon" variant="ghost" onClick={() => addToOrder(menuItem)}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    )
+                })}
+                <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                    <span>Total:</span>
+                    <span>${getTotal().toFixed(2)}</span>
+                </div>
+                </div>
+            )}
+            </div>
+            <SheetFooter>
+                <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar Pedido a Cocina
+                </Button>
+            </SheetFooter>
+        </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+
+export default function WaiterDashboardPage() {
+  const { state } = useAppState();
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  
+  return (
+    <div className="space-y-6">
+        <div className="space-y-2">
+            <h1 className="text-3xl font-bold font-headline">Gestión de Mesas</h1>
+            <p className="text-muted-foreground">Seleccione una mesa para ver su estado o tomar un pedido.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {state.tables.map((table) => (
+            <TableCard
+                key={table.id}
+                tableId={table.id}
+                status={table.status}
+                onSelect={() => setSelectedTable(table.id)}
+            />
+            ))}
+        </div>
+
+        {selectedTable !== null && (
+            <OrderSheet 
+                tableId={selectedTable}
+                isOpen={selectedTable !== null} 
+                onOpenChange={(open) => !open && setSelectedTable(null)} 
+            />
+        )}
+    </div>
+  );
+}
