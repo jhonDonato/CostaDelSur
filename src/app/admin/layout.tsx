@@ -16,12 +16,12 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
+    if (!isLoading && (!user || (user.role !== 'admin' && user.role !== 'waiter'))) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user || user.role !== 'admin') {
+  if (isLoading || !user || (user.role !== 'admin' && user.role !== 'waiter')) {
     // Show a loading state while we verify auth
     return (
         <div className="flex h-screen w-screen items-center justify-center">
