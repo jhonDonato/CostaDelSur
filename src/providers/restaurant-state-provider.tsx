@@ -95,7 +95,7 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
       if (action.payload.status === 'ready' && order) {
         newNotifications = [{
           id: `notif-ready-${order.id}`,
-          message: `Pedido de la Mesa ${order.tableId} está listo!`,
+          message: `El pedido de la Mesa ${order.tableId} está listo para entregar.`,
           type: 'order-ready',
           tableId: order.tableId,
           timestamp: Date.now(),
@@ -133,7 +133,7 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
              if (!state.notifications.some(n => n.id === notifId)) {
                 newNotifications = [{
                     id: notifId,
-                    message: `Inventario bajo para ${menuItem.name} (${action.payload.newStock} restantes).`,
+                    message: `Alerta de inventario. Quedan ${action.payload.newStock} unidades de ${menuItem.name}.`,
                     type: 'low-stock',
                     timestamp: Date.now(),
                     read: false,
@@ -211,6 +211,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [audioQueue, setAudioQueue] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [processedNotifications, setProcessedNotifications] = useState<Set<string>>(new Set());
 
   // Function to handle Text-to-Speech conversion and queueing
   const playVoiceNotification = useCallback(async (text: string) => {
@@ -230,13 +231,13 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       setIsPlaying(true);
       const audioUrl = audioQueue[0];
       const audio = new Audio(audioUrl);
-      audio.play();
+      audio.play().catch(e => console.error("Audio play failed", e));
       audio.onended = () => {
         setAudioQueue(prev => prev.slice(1));
         setIsPlaying(false);
       };
-      audio.onerror = () => { // Handle potential audio play errors
-        console.error("Error playing audio.");
+      audio.onerror = (e) => { // Handle potential audio play errors
+        console.error("Error playing audio.", e);
         setAudioQueue(prev => prev.slice(1));
         setIsPlaying(false);
       }
@@ -246,11 +247,12 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   // Effect for unread notifications
   useEffect(() => {
     state.notifications.forEach(n => {
-        if (!n.read) {
+        if (!processedNotifications.has(n.id)) {
             playVoiceNotification(n.message);
+            setProcessedNotifications(prev => new Set(prev).add(n.id));
         }
     });
-  }, [state.notifications, playVoiceNotification]);
+  }, [state.notifications, playVoiceNotification, processedNotifications]);
   
   // Effect for order delivery timers
   useEffect(() => {
