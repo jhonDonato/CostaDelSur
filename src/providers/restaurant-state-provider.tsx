@@ -19,7 +19,8 @@ type Action =
   | { type: 'CREATE_ORDER'; payload: { tableId: number; items: OrderItem[] } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
-  | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } };
+  | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
+  | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> & { id: string } };
 
 const reducer = (state: RestaurantState, action: Action): RestaurantState => {
   switch (action.type) {
@@ -108,6 +109,24 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             ...state,
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
+    case 'UPDATE_MENU_ITEM': {
+        const { id, ...data } = action.payload;
+        const exists = state.menuItems.some(item => item.id === id);
+        if (exists) {
+            return {
+                ...state,
+                menuItems: state.menuItems.map(item =>
+                    item.id === id ? { ...item, ...data } : item
+                ),
+            };
+        } else {
+            // This is a new item
+            return {
+                ...state,
+                menuItems: [...state.menuItems, { id, ...(data as Omit<MenuItem, 'id'>) }],
+            };
+        }
+    }
     default:
       return state;
   }

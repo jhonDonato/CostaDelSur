@@ -1,5 +1,7 @@
 "use client";
 
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,15 +38,17 @@ function MenuItemCard({ item }: { item: MenuItem }) {
   );
 }
 
-export default function CustomerMenuPage() {
+function CustomerMenuPageContent() {
   const { state, dispatch } = useAppState();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const tableNumber = searchParams.get('table') || 'N/A';
+
   const { menuItems } = state;
-  const tableNumber = 5; // Simulating QR scan for Table 5
 
   const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres'];
   const menuByCategory = categories.reduce((acc, category) => {
-    const items = menuItems.filter(item => item.category === category);
+    const items = menuItems.filter(item => item.category === category && item.stock > 0);
     if (items.length > 0) {
       acc[category] = items;
     }
@@ -52,7 +56,16 @@ export default function CustomerMenuPage() {
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
   const handleCallWaiter = () => {
-    dispatch({ type: 'CALL_WAITER', payload: { tableId: tableNumber } });
+    const tableId = parseInt(tableNumber, 10);
+    if (isNaN(tableId)) {
+      toast({
+        title: "Error",
+        description: "Número de mesa inválido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    dispatch({ type: 'CALL_WAITER', payload: { tableId } });
     toast({
       title: "Llamada Enviada",
       description: `Un mesero atenderá la mesa ${tableNumber} pronto.`,
@@ -101,10 +114,19 @@ export default function CustomerMenuPage() {
         onClick={handleCallWaiter}
         className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
         size="icon"
+        disabled={tableNumber === 'N/A'}
       >
         <Phone className="h-8 w-8" />
         <span className="sr-only">Llamar al Mesero</span>
       </Button>
     </div>
   );
+}
+
+export default function CustomerMenuPage() {
+    return (
+        <Suspense fallback={<div>Cargando...</div>}>
+            <CustomerMenuPageContent />
+        </Suspense>
+    )
 }
