@@ -38,10 +38,10 @@ export default function WaiterLayout({
   const navItems = [
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
     { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
-    { href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed },
   ];
 
   if (user.role === 'admin') {
+      navItems.push({ href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed });
       navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
   }
 
