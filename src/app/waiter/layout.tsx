@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -21,20 +22,27 @@ export default function WaiterLayout({
   }, [user, isLoading, router]);
 
   if (isLoading || !user) {
-    return <div>Cargando...</div>;
+    return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <div>Cargando...</div>
+        </div>
+    );
   }
   
   // Allow admin to see waiter page too
   if (user.role !== 'waiter' && user.role !== 'admin') {
       router.push('/login');
-      return <div>Redirigiendo...</div>;
+      return <div className="flex h-screen w-screen items-center justify-center">Redirigiendo...</div>;
   }
 
   const navItems = [
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-    { href: '/admin/inventory', label: 'Inventario', icon: Package },
     { href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed },
   ];
+
+  if (user.role === 'admin') {
+      navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
+  }
 
   return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
 }

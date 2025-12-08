@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -21,7 +22,12 @@ export default function AdminLayout({
   }, [user, isLoading, router]);
 
   if (isLoading || !user || user.role !== 'admin') {
-    return <div>Cargando y verificando acceso...</div>;
+    // Show a loading state while we verify auth
+    return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <div>Cargando y verificando acceso...</div>
+        </div>
+    );
   }
 
   const navItems = [
