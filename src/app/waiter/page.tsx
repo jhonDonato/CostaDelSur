@@ -7,10 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -42,6 +46,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const { state, dispatch, getMenuItem, getOrderForTable } = useAppState();
   const { toast } = useToast();
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
+  const [deliveryTime, setDeliveryTime] = useState('15');
 
   const existingOrder = getOrderForTable(tableId);
 
@@ -70,13 +75,20 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   };
 
   const submitOrder = () => {
+    const time = parseInt(deliveryTime, 10);
     if (currentOrderItems.length === 0) {
         toast({ title: "Orden Vacía", description: "Agregue al menos un item para enviar el pedido.", variant: "destructive"});
         return;
     }
-    dispatch({type: 'CREATE_ORDER', payload: { tableId, items: currentOrderItems }});
+    if(isNaN(time) || time <= 0) {
+        toast({ title: "Tiempo Inválido", description: "Por favor ingrese un tiempo de entrega válido.", variant: "destructive"});
+        return;
+    }
+
+    dispatch({type: 'CREATE_ORDER', payload: { tableId, items: currentOrderItems, estimatedDeliveryTime: time }});
     toast({ title: "Pedido Enviado", description: `El pedido para la mesa ${tableId} ha sido enviado a la cocina.`});
     setCurrentOrderItems([]);
+    setDeliveryTime('15');
     onOpenChange(false);
   };
   
@@ -87,28 +99,59 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     onOpenChange(open);
   }
 
+  const handleFreeUpTable = () => {
+    if (existingOrder) {
+      dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
+      dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free'}});
+      toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
+      onOpenChange(false);
+    }
+  };
+
   const getTotal = () => {
-    return currentOrderItems.reduce((total, orderItem) => {
-        const menuItem = getMenuItem(orderItem.menuItemId);
-        return total + (menuItem ? menuItem.price * orderItem.quantity : 0);
-    }, 0);
+    const itemsTotal = (items: OrderItem[]) => {
+      return items.reduce((total, orderItem) => {
+          const menuItem = getMenuItem(orderItem.menuItemId);
+          return total + (menuItem ? menuItem.price * orderItem.quantity : 0);
+      }, 0);
+    }
+    
+    if (existingOrder) {
+      return itemsTotal(existingOrder.items);
+    }
+    return itemsTotal(currentOrderItems);
   };
 
   const renderExistingOrder = () => (
-    <div>
-        <h3 className="font-semibold mb-2">Pedido Actual</h3>
-        <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
-        <div className="space-y-2">
-            {existingOrder?.items.map(item => {
-                const menuItem = getMenuItem(item.menuItemId);
-                return (
-                    <div key={item.menuItemId} className="flex justify-between items-center text-sm">
-                        <span>{menuItem?.name} x {item.quantity}</span>
-                        <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
-                    </div>
-                );
-            })}
+    <div className="flex-1 flex flex-col justify-between">
+        <div>
+            <h3 className="font-semibold mb-2">Pedido Actual</h3>
+            <div className="flex justify-between items-center">
+                <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
+                {existingOrder && <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>}
+            </div>
+            <div className="space-y-2 mb-4">
+                {existingOrder?.items.map(item => {
+                    const menuItem = getMenuItem(item.menuItemId);
+                    return (
+                        <div key={item.menuItemId} className="flex justify-between items-center text-sm">
+                            <span>{menuItem?.name} x {item.quantity}</span>
+                            <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                <span>Total:</span>
+                <span>${getTotal().toFixed(2)}</span>
+            </div>
         </div>
+        <SheetFooter>
+            <Button onClick={handleFreeUpTable} className="w-full">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Liberar Mesa y Pagar
+            </Button>
+        </SheetFooter>
     </div>
   );
 
@@ -118,7 +161,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         <SheetHeader>
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
-            {existingOrder ? "Gestionar pedido existente." : "Tome un nuevo pedido para esta mesa."}
+            {existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa."}
           </SheetDescription>
         </SheetHeader>
         
@@ -127,13 +170,13 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
             <div className="flex-1 overflow-y-auto pr-4 -mr-4">
             <h3 className="font-semibold mb-2">Añadir al Pedido</h3>
             <div className="space-y-2">
-                {state.menuItems.map(item => (
+                {state.menuItems.filter(i => i.stock > 0).map(item => (
                 <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                     <div>
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
                     </div>
-                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)} disabled={item.stock === 0}>
+                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>
@@ -141,39 +184,45 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
             </div>
             </div>
 
-            <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
-            {currentOrderItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Añada items al pedido.</p>
-            ) : (
+            <div className="border-t pt-4 space-y-4">
+                <div>
+                    <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
+                    {currentOrderItems.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Añada items al pedido.</p>
+                    ) : (
+                        <div className="space-y-2">
+                        {currentOrderItems.map(orderItem => {
+                            const menuItem = getMenuItem(orderItem.menuItemId);
+                            if (!menuItem) return null;
+                            return (
+                            <div key={orderItem.menuItemId} className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{menuItem.name}</p>
+                                    <p className="text-sm text-muted-foreground">${menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button size="icon" variant="ghost" onClick={() => removeFromOrder(orderItem.menuItemId)}>
+                                        {orderItem.quantity > 1 ? <Minus className="h-4 w-4" /> : <Trash2 className="h-4 w-4 text-destructive"/>}
+                                    </Button>
+                                    <span className="w-6 text-center">{orderItem.quantity}</span>
+                                    <Button size="icon" variant="ghost" onClick={() => addToOrder(menuItem)}>
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                            )
+                        })}
+                        <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                            <span>Total:</span>
+                            <span>${getTotal().toFixed(2)}</span>
+                        </div>
+                        </div>
+                    )}
+                </div>
                 <div className="space-y-2">
-                {currentOrderItems.map(orderItem => {
-                    const menuItem = getMenuItem(orderItem.menuItemId);
-                    if (!menuItem) return null;
-                    return (
-                    <div key={orderItem.menuItemId} className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium">{menuItem.name}</p>
-                            <p className="text-sm text-muted-foreground">${menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button size="icon" variant="ghost" onClick={() => removeFromOrder(orderItem.menuItemId)}>
-                                {orderItem.quantity > 1 ? <Minus className="h-4 w-4" /> : <Trash2 className="h-4 w-4 text-destructive"/>}
-                            </Button>
-                            <span className="w-6 text-center">{orderItem.quantity}</span>
-                            <Button size="icon" variant="ghost" onClick={() => addToOrder(menuItem)}>
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                    )
-                })}
-                <div className="font-bold text-lg flex justify-between pt-2 border-t">
-                    <span>Total:</span>
-                    <span>${getTotal().toFixed(2)}</span>
+                    <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
+                    <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
                 </div>
-                </div>
-            )}
             </div>
             <SheetFooter>
                 <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>

@@ -28,13 +28,21 @@ export default function KitchenLayout({
         </div>
     );
   }
+
+  // Allow admin and kitchen roles
+  if (user.role !== 'kitchen' && user.role !== 'admin') {
+      router.push('/login');
+      return <div className="flex h-screen w-screen items-center justify-center">Redirigiendo...</div>;
+  }
   
   const navItems = [
     { href: '/kitchen', label: 'Pedidos', icon: UtensilsCrossed },
-    { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
   ];
 
-  // Admins can also see the kitchen
+  if (user.role === 'waiter' || user.role === 'admin') {
+    navItems.push({ href: '/waiter', label: 'Mesas', icon: LayoutDashboard });
+  }
+
   if (user.role === 'admin') {
       navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
   }

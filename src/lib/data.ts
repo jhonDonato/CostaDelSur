@@ -6,6 +6,7 @@ const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.i
 export const users: User[] = [
   { id: '1', name: 'Maria', username: 'Maria', role: 'admin' },
   { id: '2', name: 'Jhon', username: 'Jhon', role: 'waiter' },
+  { id: '3', name: 'Camila', username: 'Camila', role: 'kitchen' },
 ];
 
 export const menuItems: MenuItem[] = [
@@ -98,6 +99,7 @@ export const initialOrders: Order[] = [
     ],
     status: 'preparing',
     createdAt: Date.now() - 5 * 60 * 1000,
+    estimatedDeliveryTime: 15,
   },
   {
     id: 'order-2',
@@ -107,6 +109,7 @@ export const initialOrders: Order[] = [
     ],
     status: 'pending',
     createdAt: Date.now() - 2 * 60 * 1000,
+    estimatedDeliveryTime: 10,
   },
   {
     id: 'order-3',
@@ -117,6 +120,7 @@ export const initialOrders: Order[] = [
     ],
     status: 'ready',
     createdAt: Date.now() - 10 * 60 * 1000,
+    estimatedDeliveryTime: 20,
   },
 ];
 

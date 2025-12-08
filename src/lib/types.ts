@@ -2,7 +2,7 @@ export type User = {
   id: string;
   name: string;
   username: string;
-  role: 'admin' | 'waiter';
+  role: 'admin' | 'waiter' | 'kitchen';
 };
 
 export type MenuItem = {
@@ -26,6 +26,8 @@ export type Order = {
   items: OrderItem[];
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: number;
+  estimatedDeliveryTime: number; // in minutes
+  deliveryTimerId?: number; // Store timer ID
 };
 
 export type TableStatus = 'free' | 'occupied' | 'needs-attention';
@@ -39,7 +41,7 @@ export type Table = {
 export type Notification = {
   id: string;
   message: string;
-  type: 'call' | 'low-stock' | 'order-ready';
+  type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due';
   timestamp: number;
   read: boolean;
   tableId?: number;

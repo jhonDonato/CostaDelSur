@@ -31,16 +31,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password_not_used: string) => {
     // In a real app, you'd verify the password against a hash.
-    // For this mock, we just find the user by username and assume password is '123456'.
     const foundUser = users.find(u => u.username === username);
 
     if (foundUser) {
       setUser(foundUser);
       localStorage.setItem('marisqueria-user', JSON.stringify(foundUser));
-      if (foundUser.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/waiter');
+      switch (foundUser.role) {
+        case 'admin':
+          router.push('/admin');
+          break;
+        case 'waiter':
+          router.push('/waiter');
+          break;
+        case 'kitchen':
+            router.push('/kitchen');
+            break;
+        default:
+            router.push('/login');
       }
       return true;
     }
