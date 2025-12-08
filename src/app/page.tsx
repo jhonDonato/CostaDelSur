@@ -24,6 +24,9 @@ function MenuItemCard({ item }: { item: MenuItem }) {
           data-ai-hint={placeholder?.imageHint}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
+        <div className="absolute top-2 right-2 bg-primary/80 text-primary-foreground text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+          {item.category}
+        </div>
       </div>
       <CardHeader>
         <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
@@ -38,7 +41,8 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 
 export default function HomePage() {
     const { state } = useAppState();
-    const featuredItems = state.menuItems.slice(0, 3);
+    const featuredItems = state.menuItems.filter(item => item.category === 'Platos Fuertes').slice(0, 3);
+    const featuredEntradas = state.menuItems.filter(item => item.category === 'Entradas').slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -83,7 +87,7 @@ export default function HomePage() {
         <section className="py-16 bg-card/50">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
-                    <h3 className="text-4xl font-bold font-headline">Platos Destacados</h3>
+                    <h3 className="text-4xl font-bold font-headline">Platos Fuertes Destacados</h3>
                     <p className="text-muted-foreground mt-2">Una selección de los favoritos de nuestros clientes.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -91,6 +95,22 @@ export default function HomePage() {
                         <MenuItemCard key={item.id} item={item} />
                     ))}
                 </div>
+
+                {featuredEntradas.length > 0 && (
+                    <>
+                        <div className="text-center mt-20 mb-12">
+                            <h3 className="text-4xl font-bold font-headline">Nuestras Entradas</h3>
+                            <p className="text-muted-foreground mt-2">Perfectas para empezar tu experiencia.</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {featuredEntradas.map(item => (
+                                <MenuItemCard key={item.id} item={item} />
+                            ))}
+                        </div>
+                    </>
+                )}
+
+
                 <div className="text-center mt-12">
                    <Link href="/menu" passHref>
                      <Button size="lg">Ver Menú Completo</Button>

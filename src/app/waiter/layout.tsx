@@ -37,7 +37,7 @@ export default function WaiterLayout({
 
   const navItems = [
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-    { href: '/admin/menu-editor', label: 'Editor de Menú', icon: Utensils },
+    { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
     { href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed },
   ];
 

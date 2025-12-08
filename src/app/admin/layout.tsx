@@ -16,12 +16,12 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!user || (user.role !== 'admin' && user.role !== 'waiter'))) {
+    if (!isLoading && (!user || user.role !== 'admin')) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user || (user.role !== 'admin' && user.role !== 'waiter')) {
+  if (isLoading || !user || user.role !== 'admin') {
     // Show a loading state while we verify auth
     return (
         <div className="flex h-screen w-screen items-center justify-center">
@@ -32,7 +32,7 @@ export default function AdminLayout({
 
   const navItems = [
     { href: '/admin', label: 'Reportes', icon: BarChart3 },
-    { href: '/admin/menu-editor', label: 'Editor de Menú', icon: Utensils },
+    { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
     { href: '/admin/inventory', label: 'Inventario', icon: Package },
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
     { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },

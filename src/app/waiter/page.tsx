@@ -1,13 +1,14 @@
+
 "use client";
 
 import { useState } from 'react';
 import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -47,6 +48,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const { toast } = useToast();
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [deliveryTime, setDeliveryTime] = useState('15');
+  const [view, setView] = useState<'order' | 'receipt'>('order');
 
   const existingOrder = getOrderForTable(tableId);
 
@@ -96,92 +98,160 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     if (open && state.tables.find(t => t.id === tableId)?.status === 'needs-attention') {
         dispatch({ type: 'UPDATE_TABLE_STATUS', payload: { tableId, status: 'occupied' } });
     }
+    if (!open) {
+      setView('order'); // Reset view on close
+    }
     onOpenChange(open);
   }
 
   const handleFreeUpTable = () => {
     if (existingOrder) {
-      dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
-      dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free'}});
-      toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
-      onOpenChange(false);
+      setView('receipt');
     }
   };
 
-  const getTotal = () => {
-    const itemsTotal = (items: OrderItem[]) => {
+  const handlePayAndClose = () => {
+      if (existingOrder) {
+        dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
+        dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free'}});
+        toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
+        onOpenChange(false);
+      }
+  }
+
+  const getTotal = (items: OrderItem[]) => {
       return items.reduce((total, orderItem) => {
           const menuItem = getMenuItem(orderItem.menuItemId);
           return total + (menuItem ? menuItem.price * orderItem.quantity : 0);
       }, 0);
-    }
-    
-    if (existingOrder) {
-      return itemsTotal(existingOrder.items);
-    }
-    return itemsTotal(currentOrderItems);
   };
 
-  const renderExistingOrder = () => (
-    <div className="flex-1 flex flex-col justify-between">
-        <div>
-            <h3 className="font-semibold mb-2">Pedido Actual</h3>
-            <div className="flex justify-between items-center">
-                <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
-                {existingOrder && <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>}
-            </div>
-            <div className="space-y-2 mb-4">
-                {existingOrder?.items.map(item => {
-                    const menuItem = getMenuItem(item.menuItemId);
-                    return (
-                        <div key={item.menuItemId} className="flex justify-between items-center text-sm">
-                            <span>{menuItem?.name} x {item.quantity}</span>
-                            <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="font-bold text-lg flex justify-between pt-2 border-t">
-                <span>Total:</span>
-                <span>${getTotal().toFixed(2)}</span>
-            </div>
-        </div>
-        <SheetFooter>
-            <Button onClick={handleFreeUpTable} className="w-full">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Liberar Mesa y Pagar
-            </Button>
-        </SheetFooter>
-    </div>
-  );
+  const menuByCategory = state.menuItems.reduce((acc, item) => {
+    if (item.stock > 0) {
+        if (!acc[item.category]) {
+            acc[item.category] = [];
+        }
+        acc[item.category].push(item);
+    }
+    return acc;
+  }, {} as Record<MenuItem['category'], MenuItem[]>);
 
-  return (
-    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
-        <SheetHeader>
-          <SheetTitle>Mesa {tableId}</SheetTitle>
-          <SheetDescription>
-            {existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa."}
-          </SheetDescription>
-        </SheetHeader>
-        
-        {existingOrder ? renderExistingOrder() : (
+  const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres'];
+
+
+  const renderReceiptView = () => {
+    const orderToDisplay = existingOrder;
+    if (!orderToDisplay) return null;
+
+    const total = getTotal(orderToDisplay.items);
+    const igv = total * 0.18;
+    const finalTotal = total + igv;
+
+    return (
+        <div className="flex-1 flex flex-col justify-between">
+            <div className="p-4 border rounded-lg">
+                <SheetHeader className="text-center mb-4">
+                    <SheetTitle>Boleta de Venta</SheetTitle>
+                    <SheetDescription>Marisquería Online</SheetDescription>
+                </SheetHeader>
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Mesa:</span><span>{orderToDisplay.tableId}</span></div>
+                    <div className="flex justify-between"><span>Fecha:</span><span>{new Date(orderToDisplay.createdAt).toLocaleDateString()}</span></div>
+                    <div className="flex justify-between border-b pb-2 mb-2"><span>Hora:</span><span>{new Date(orderToDisplay.createdAt).toLocaleTimeString()}</span></div>
+                    
+                    {orderToDisplay.items.map(item => {
+                        const menuItem = getMenuItem(item.menuItemId);
+                        return (
+                            <div key={item.menuItemId} className="flex justify-between">
+                                <span>{item.quantity}x {menuItem?.name}</span>
+                                <span>S/. {((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
+                            </div>
+                        )
+                    })}
+
+                    <div className="border-t pt-2 mt-2 space-y-1">
+                        <div className="flex justify-between"><span>Subtotal:</span><span>S/. {total.toFixed(2)}</span></div>
+                        <div className="flex justify-between"><span>IGV (18%):</span><span>S/. {igv.toFixed(2)}</span></div>
+                        <div className="flex justify-between font-bold text-base"><span>Total a Pagar:</span><span>S/. {finalTotal.toFixed(2)}</span></div>
+                    </div>
+                </div>
+            </div>
+            <SheetFooter className="mt-4 gap-2">
+                <Button onClick={() => toast({title: "Función no implementada", description: "La impresión no está disponible en esta demo."})} variant="outline" className="w-full">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimir
+                </Button>
+                <Button onClick={handlePayAndClose} className="w-full">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Marcar como Pagado y Liberar
+                </Button>
+            </SheetFooter>
+        </div>
+    )
+  }
+
+  const renderOrderView = () => {
+    if (existingOrder) {
+        const orderTotal = getTotal(existingOrder.items);
+        return (
+            <div className="flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 className="font-semibold mb-2">Pedido Actual</h3>
+                    <div className="flex justify-between items-center">
+                        <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
+                        {existingOrder && <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>}
+                    </div>
+                    <div className="space-y-2 mb-4">
+                        {existingOrder?.items.map(item => {
+                            const menuItem = getMenuItem(item.menuItemId);
+                            return (
+                                <div key={item.menuItemId} className="flex justify-between items-center text-sm">
+                                    <span>{menuItem?.name} x {item.quantity}</span>
+                                    <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                        <span>Total:</span>
+                        <span>${orderTotal.toFixed(2)}</span>
+                    </div>
+                </div>
+                <SheetFooter>
+                    <Button onClick={handleFreeUpTable} className="w-full">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Desocupar Mesa y Generar Boleta
+                    </Button>
+                </SheetFooter>
+            </div>
+        )
+    }
+
+    const newOrderTotal = getTotal(currentOrderItems);
+
+    return (
         <>
             <div className="flex-1 overflow-y-auto pr-4 -mr-4">
-            <h3 className="font-semibold mb-2">Añadir al Pedido</h3>
-            <div className="space-y-2">
-                {state.menuItems.filter(i => i.stock > 0).map(item => (
-                <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                    <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
-                    </div>
-                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
-                        <Plus className="h-4 w-4" />
-                    </Button>
-                </div>
+                {orderCategories.map(category => (
+                    menuByCategory[category] && (
+                        <div key={category} className="mb-4">
+                            <h3 className="font-semibold mb-2 sticky top-0 bg-background py-1">{category}</h3>
+                            <div className="space-y-2">
+                                {menuByCategory[category].map(item => (
+                                <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                    <div>
+                                        <p className="font-medium">{item.name}</p>
+                                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                                    </div>
+                                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                ))}
+                            </div>
+                        </div>
+                    )
                 ))}
-            </div>
             </div>
 
             <div className="border-t pt-4 space-y-4">
@@ -214,7 +284,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                         })}
                         <div className="font-bold text-lg flex justify-between pt-2 border-t">
                             <span>Total:</span>
-                            <span>${getTotal().toFixed(2)}</span>
+                            <span>${newOrderTotal.toFixed(2)}</span>
                         </div>
                         </div>
                     )}
@@ -231,7 +301,21 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 </Button>
             </SheetFooter>
         </>
-        )}
+    )
+  }
+
+  return (
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
+        <SheetHeader>
+          <SheetTitle>Mesa {tableId}</SheetTitle>
+          <SheetDescription>
+            {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
+          </SheetDescription>
+        </SheetHeader>
+        
+        {view === 'receipt' ? renderReceiptView() : renderOrderView()}
+        
       </SheetContent>
     </Sheet>
   );
