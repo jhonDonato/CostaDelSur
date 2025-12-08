@@ -125,8 +125,10 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const handlePayAndClose = () => {
       if (existingOrder) {
         // Double-check status update in case it wasn't delivered yet.
-        dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
-        dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free'}});
+        if (existingOrder.status !== 'delivered') {
+          dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
+        }
+        dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free', orderId: null}});
         toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
         onOpenChange(false);
       }
@@ -245,7 +247,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             Confirmar Entrega de Pedido
                         </Button>
                     )}
-                    {(isOrderDelivered || !isOrderReady) && existingOrder.status !== 'preparing' && existingOrder.status !== 'pending' && (
+                    {isOrderDelivered && (
                          <Button onClick={handleFreeUpTable} className="w-full">
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Desocupar Mesa y Generar Boleta
@@ -382,5 +384,7 @@ export default function WaiterDashboardPage() {
     </div>
   );
 }
+
+    
 
     

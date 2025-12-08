@@ -84,8 +84,6 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
     }
     case 'UPDATE_ORDER_STATUS': {
       let newNotifications = state.notifications;
-      let updatedOrders = state.orders;
-      let updatedTables = state.tables;
       const orderIndex = state.orders.findIndex(o => o.id === action.payload.orderId);
 
       if (orderIndex === -1) return state;
@@ -93,35 +91,34 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
       const order = state.orders[orderIndex];
 
       if (action.payload.status === 'ready' && order) {
-        newNotifications = [{
-          id: `notif-ready-${order.id}`,
-          message: `El pedido de la Mesa ${order.tableId} está listo para entregar.`,
-          type: 'order-ready',
-          tableId: order.tableId,
-          timestamp: Date.now(),
-          read: false,
-        }, ...state.notifications];
+        const notifId = `notif-ready-${order.id}`;
+         if (!state.notifications.some(n => n.id === notifId)) {
+            newNotifications = [{
+              id: notifId,
+              message: `El pedido de la Mesa ${order.tableId} está listo para entregar.`,
+              type: 'order-ready',
+              tableId: order.tableId,
+              timestamp: Date.now(),
+              read: false,
+            }, ...state.notifications];
+         }
       }
       
-      // When order is delivered, free up the table and clear its orderId
+      // When order is delivered, clear its delivery timer
       if(action.payload.status === 'delivered' && order) {
-          updatedTables = state.tables.map(t => 
-              t.id === order.tableId ? { ...t, status: 'free', orderId: undefined } : t
-          );
           if (order.deliveryTimerId) {
             clearTimeout(order.deliveryTimerId);
           }
       }
 
-      updatedOrders = state.orders.map(o =>
-          o.id === action.payload.orderId ? { ...o, status: action.payload.status, deliveryTimerId: undefined } : o
+      const updatedOrders = state.orders.map(o =>
+          o.id === action.payload.orderId ? { ...o, status: action.payload.status, deliveryTimerId: action.payload.status === 'delivered' ? undefined : o.deliveryTimerId } : o
         );
 
       return {
         ...state,
         orders: updatedOrders,
         notifications: newNotifications,
-        tables: updatedTables,
       };
     }
     case 'UPDATE_STOCK': {
@@ -247,7 +244,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   // Effect for unread notifications
   useEffect(() => {
     state.notifications.forEach(n => {
-        if (!processedNotifications.has(n.id)) {
+        if (!processedNotifications.has(n.id) && !n.read) {
             playVoiceNotification(n.message);
             setProcessedNotifications(prev => new Set(prev).add(n.id));
         }
@@ -289,7 +286,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const getOrderForTable = (tableId: number) => {
     const table = state.tables.find(t => t.id === tableId);
     if (!table || !table.orderId) return undefined;
-    return state.orders.find(o => o.id === table.orderId && o.status !== 'delivered' && o.status !== 'cancelled');
+    return state.orders.find(o => o.id === table.orderId && o.status !== 'cancelled');
   }
 
   return (
@@ -298,5 +295,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
+
+    
 
     
