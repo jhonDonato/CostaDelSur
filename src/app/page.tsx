@@ -50,7 +50,7 @@ export default function HomePage() {
             <h1 className="text-xl font-bold font-headline">Marisquería Online</h1>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/menu?table=1" passHref>
+            <Link href="/menu" passHref>
               <Button variant="ghost">Menú</Button>
             </Link>
             <Link href="/login" passHref>
@@ -64,11 +64,11 @@ export default function HomePage() {
       <main>
         <section className="relative h-[60vh] w-full">
             <Image 
-                src="https://images.unsplash.com/photo-1562592539-e38053f0b2f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzZWFmb29kJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE3NjUyNDA4MDB8MA&ixlib=rb-4.1.0&q=80&w=1080" 
-                alt="Deliciosa comida de mar en un restaurante"
+                src="https://images.unsplash.com/photo-1509315811345-672d83ef2fbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2xlJTIwYmVhY2glMjBkaW5pbmcsJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE3NjU1NDQ5NzR8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Restaurante con vista al mar"
                 fill
                 className="object-cover"
-                data-ai-hint="seafood restaurant"
+                data-ai-hint="beach restaurant"
                 priority
             />
             <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-center text-white p-4">
@@ -92,7 +92,7 @@ export default function HomePage() {
                     ))}
                 </div>
                 <div className="text-center mt-12">
-                   <Link href="/menu?table=1" passHref>
+                   <Link href="/menu" passHref>
                      <Button size="lg">Ver Menú Completo</Button>
                    </Link>
                 </div>
@@ -127,11 +127,11 @@ export default function HomePage() {
                     </div>
                     <div className="relative h-80 rounded-lg overflow-hidden shadow-xl">
                         <Image 
-                            src="https://images.unsplash.com/photo-1559948280-a846a2a6d1b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmaXNoaW5nJTIwYm9hdCUyMHN1bnNldHxlbnwwfHx8fDE3NjUyNDEwMDh8MA&ixlib=rb-4.1.0&q=80&w=1080" 
-                            alt="Barco pesquero al atardecer"
+                            src="https://images.unsplash.com/photo-1540422588095-23c7c223616a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmaXNoaW5nJTIwdmlsbGFnZXxlbnwwfHx8fDE3NjU1NDUwMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080" 
+                            alt="Pueblo pesquero tradicional"
                             fill
                             className="object-cover"
-                            data-ai-hint="fishing boat"
+                            data-ai-hint="fishing village"
                         />
                     </div>
                 </div>

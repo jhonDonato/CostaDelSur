@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone } from 'lucide-react';
+import { Phone, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,17 @@ import { Logo } from '@/components/icons';
 import type { MenuItem } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from '@/components/ui/input';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
@@ -44,7 +55,10 @@ function CustomerMenuPageContent() {
   const { state, dispatch } = useAppState();
   const { toast } = useToast();
   const searchParams = useSearchParams();
-  const tableNumber = searchParams.get('table') || 'N/A';
+  const tableQuery = searchParams.get('table');
+
+  const [isCallAlertOpen, setIsCallAlertOpen] = useState(false);
+  const [tableNumberInput, setTableNumberInput] = useState('');
 
   const { menuItems } = state;
 
@@ -58,11 +72,35 @@ function CustomerMenuPageContent() {
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
   const handleCallWaiter = () => {
-    const tableId = parseInt(tableNumber, 10);
-    if (isNaN(tableId)) {
+    if (tableQuery) {
+        // If table is in URL, call directly
+        const tableId = parseInt(tableQuery, 10);
+        if (isNaN(tableId)) {
+             toast({
+                title: "Error",
+                description: "Número de mesa inválido en la URL.",
+                variant: "destructive",
+            });
+            return;
+        }
+        dispatch({ type: 'CALL_WAITER', payload: { tableId } });
+        toast({
+            title: "Llamada Enviada",
+            description: `Un mesero atenderá la mesa ${tableId} pronto.`,
+            variant: "default",
+        });
+    } else {
+        // If no table in URL, open dialog to ask for it
+        setIsCallAlertOpen(true);
+    }
+  };
+
+  const submitCallFromAlert = () => {
+    const tableId = parseInt(tableNumberInput, 10);
+    if (isNaN(tableId) || tableId <= 0) {
       toast({
-        title: "Error",
-        description: "Número de mesa inválido. Escanee el código QR de su mesa.",
+        title: "Número de Mesa Inválido",
+        description: "Por favor, ingrese un número de mesa válido.",
         variant: "destructive",
       });
       return;
@@ -70,10 +108,13 @@ function CustomerMenuPageContent() {
     dispatch({ type: 'CALL_WAITER', payload: { tableId } });
     toast({
       title: "Llamada Enviada",
-      description: `Un mesero atenderá la mesa ${tableNumber} pronto.`,
+      description: `Un mesero atenderá la mesa ${tableId} pronto.`,
       variant: "default",
     });
+    setIsCallAlertOpen(false);
+    setTableNumberInput('');
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +124,9 @@ function CustomerMenuPageContent() {
             <Logo className="h-8 w-8 text-primary" />
             <h1 className="text-xl font-bold font-headline">Marisquería Online</h1>
           </Link>
-          <div className="font-semibold rounded-md bg-secondary text-secondary-foreground px-3 py-1">Mesa {tableNumber}</div>
+          {tableQuery && (
+            <div className="font-semibold rounded-md bg-secondary text-secondary-foreground px-3 py-1">Mesa {tableQuery}</div>
+          )}
         </div>
       </header>
       
@@ -122,11 +165,33 @@ function CustomerMenuPageContent() {
         onClick={handleCallWaiter}
         className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
         size="icon"
-        disabled={tableNumber === 'N/A'}
       >
         <Phone className="h-8 w-8" />
         <span className="sr-only">Llamar al Mesero</span>
       </Button>
+
+      <AlertDialog open={isCallAlertOpen} onOpenChange={setIsCallAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Llamar a un mesero</AlertDialogTitle>
+            <AlertDialogDescription>
+              Por favor, ingrese su número de mesa para que podamos atenderle.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <Input 
+              type="number"
+              placeholder="Número de Mesa"
+              value={tableNumberInput}
+              onChange={(e) => setTableNumberInput(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={submitCallFromAlert}>Llamar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

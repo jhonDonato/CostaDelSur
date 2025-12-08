@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -41,13 +42,6 @@ export default function LoginPage() {
     }
     setIsLoading(false);
   }
-
-  const handleDemoLogin = async (user: 'Maria' | 'Jhon') => {
-    form.setValue('username', user);
-    form.setValue('password', '123456');
-    await onSubmit({ username: user, password: '123456' });
-  };
-
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -104,10 +98,6 @@ export default function LoginPage() {
                   <LogIn className="mr-2 h-4 w-4" />
                   {isLoading ? 'Ingresando...' : 'Ingresar'}
                 </Button>
-                <div className="flex w-full gap-2">
-                    <Button variant="secondary" className="w-full" onClick={() => handleDemoLogin('Maria')} disabled={isLoading}>Admin (Maria)</Button>
-                    <Button variant="secondary" className="w-full" onClick={() => handleDemoLogin('Jhon')} disabled={isLoading}>Mesero (Jhon)</Button>
-                </div>
               </CardFooter>
             </form>
           </Form>
