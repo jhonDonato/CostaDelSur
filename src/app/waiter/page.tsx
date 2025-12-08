@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +104,18 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     onOpenChange(open);
   }
 
+  const handleConfirmDelivery = () => {
+    if (existingOrder) {
+      dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { orderId: existingOrder.id, status: 'delivered' } });
+      toast({
+        title: "Pedido Entregado",
+        description: `El pedido de la mesa ${tableId} ha sido marcado como entregado.`
+      });
+      // The view will update automatically, no need to close the sheet.
+      // The button will be replaced by the "Desocupar Mesa" button.
+    }
+  };
+
   const handleFreeUpTable = () => {
     if (existingOrder) {
       setView('receipt');
@@ -112,6 +124,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const handlePayAndClose = () => {
       if (existingOrder) {
+        // Double-check status update in case it wasn't delivered yet.
         dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
         dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free'}});
         toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
@@ -193,16 +206,24 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const renderOrderView = () => {
     if (existingOrder) {
         const orderTotal = getTotal(existingOrder.items);
+        const isOrderReady = existingOrder.status === 'ready';
+        const isOrderDelivered = existingOrder.status === 'delivered';
+
         return (
             <div className="flex-1 flex flex-col justify-between">
                 <div>
                     <h3 className="font-semibold mb-2">Pedido Actual</h3>
                     <div className="flex justify-between items-center">
-                        <Badge className="mb-4" variant={existingOrder?.status === 'ready' ? 'default' : 'secondary'}>{existingOrder?.status}</Badge>
-                        {existingOrder && <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>}
+                        <Badge 
+                            className={cn("mb-4", { "bg-green-500 text-white": isOrderReady })}
+                            variant={isOrderReady ? 'default' : 'secondary'}
+                        >
+                            {existingOrder.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>
                     </div>
                     <div className="space-y-2 mb-4">
-                        {existingOrder?.items.map(item => {
+                        {existingOrder.items.map(item => {
                             const menuItem = getMenuItem(item.menuItemId);
                             return (
                                 <div key={item.menuItemId} className="flex justify-between items-center text-sm">
@@ -218,10 +239,18 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                     </div>
                 </div>
                 <SheetFooter>
-                    <Button onClick={handleFreeUpTable} className="w-full">
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Desocupar Mesa y Generar Boleta
-                    </Button>
+                    {isOrderReady && (
+                        <Button onClick={handleConfirmDelivery} className="w-full bg-green-600 hover:bg-green-700">
+                            <Truck className="mr-2 h-4 w-4" />
+                            Confirmar Entrega de Pedido
+                        </Button>
+                    )}
+                    {(isOrderDelivered || !isOrderReady) && existingOrder.status !== 'preparing' && existingOrder.status !== 'pending' && (
+                         <Button onClick={handleFreeUpTable} className="w-full">
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Desocupar Mesa y Generar Boleta
+                        </Button>
+                    )}
                 </SheetFooter>
             </div>
         )
@@ -353,3 +382,5 @@ export default function WaiterDashboardPage() {
     </div>
   );
 }
+
+    

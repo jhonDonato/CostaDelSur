@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -84,6 +85,7 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
     case 'UPDATE_ORDER_STATUS': {
       let newNotifications = state.notifications;
       let updatedOrders = state.orders;
+      let updatedTables = state.tables;
       const orderIndex = state.orders.findIndex(o => o.id === action.payload.orderId);
 
       if (orderIndex === -1) return state;
@@ -92,7 +94,7 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
 
       if (action.payload.status === 'ready' && order) {
         newNotifications = [{
-          id: `notif-${Date.now()}`,
+          id: `notif-ready-${order.id}`,
           message: `Pedido de la Mesa ${order.tableId} está listo!`,
           type: 'order-ready',
           tableId: order.tableId,
@@ -101,25 +103,25 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
         }, ...state.notifications];
       }
       
-      // When order is delivered, free up the table
+      // When order is delivered, free up the table and clear its orderId
       if(action.payload.status === 'delivered' && order) {
-          const tableToFree = state.tables.find(t => t.id === order.tableId);
-          if (tableToFree) {
-            // we need to update the table status
-          }
+          updatedTables = state.tables.map(t => 
+              t.id === order.tableId ? { ...t, status: 'free', orderId: undefined } : t
+          );
           if (order.deliveryTimerId) {
             clearTimeout(order.deliveryTimerId);
           }
       }
 
       updatedOrders = state.orders.map(o =>
-          o.id === action.payload.orderId ? { ...o, status: action.payload.status } : o
+          o.id === action.payload.orderId ? { ...o, status: action.payload.status, deliveryTimerId: undefined } : o
         );
 
       return {
         ...state,
         orders: updatedOrders,
         notifications: newNotifications,
+        tables: updatedTables,
       };
     }
     case 'UPDATE_STOCK': {
@@ -233,6 +235,11 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         setAudioQueue(prev => prev.slice(1));
         setIsPlaying(false);
       };
+      audio.onerror = () => { // Handle potential audio play errors
+        console.error("Error playing audio.");
+        setAudioQueue(prev => prev.slice(1));
+        setIsPlaying(false);
+      }
     }
   }, [audioQueue, isPlaying]);
 
@@ -289,3 +296,5 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
+
+    
