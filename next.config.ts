@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  devIndicators: {
+    buildActivity: false,
+  },
+  // The following is a workaround for a NextJS bug that causes cross-origin errors in Cloud Workstations.
+  // The bug is tracked here: https://github.com/vercel/next.js/issues/67371
+  experimental: {
+    allowedNextBundlerVitalsRequests: [
+      'https://6000-firebase-studio-1765151641841.cluster-zhw3w37rxzgkutusbbhib6qhra.cloudworkstations.dev',
+    ],
+  },
 };
 
 export default nextConfig;
