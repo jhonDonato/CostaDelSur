@@ -127,7 +127,7 @@ function CustomerMenuPageContent() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground dark">
         <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-sm">
             {/* Top bar */}
             <div className="container mx-auto flex h-16 items-center justify-between px-4 border-b border-white/10">
@@ -257,7 +257,9 @@ function CustomerMenuPageContent() {
 export default function CustomerMenuPage() {
     return (
         <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center">Cargando...</div>}>
+          <div className="dark">
             <CustomerMenuPageContent />
+          </div>
         </Suspense>
     )
 }

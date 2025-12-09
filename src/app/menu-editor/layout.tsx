@@ -47,5 +47,5 @@ export default function MenuEditorLayout({
       ];
   }
 
-  return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
+  return <div className="light"><DashboardLayout navItems={navItems}>{children}</DashboardLayout></div>;
 }

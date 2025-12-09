@@ -38,5 +38,5 @@ export default function AdminLayout({
     { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },
   ];
 
-  return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
+  return <div className="light"><DashboardLayout navItems={navItems}>{children}</DashboardLayout></div>;
 }

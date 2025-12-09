@@ -48,5 +48,5 @@ export default function KitchenLayout({
   }
 
 
-  return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
+  return <div className="light"><DashboardLayout navItems={navItems}>{children}</DashboardLayout></div>;
 }

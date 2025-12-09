@@ -73,7 +73,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
-            <span className="font-bold text-lg text-foreground group-data-[collapsible=icon]:hidden">Marisquería</span>
+            <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">Marisquería</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>
@@ -106,7 +106,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6">
+        <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
           <SidebarTrigger />
           <div className="flex items-center gap-4">
              <DropdownMenu>
@@ -158,7 +158,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
             </DropdownMenu>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/30">
           {children}
         </main>
       </SidebarInset>

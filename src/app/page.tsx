@@ -40,7 +40,7 @@ export default function HomePage() {
   const { state } = useAppState();
   const allAvailableItems = state.menuItems.filter(item => item.stock > 0);
 
-  const categoriesInOrder: MenuItem['category'][] = ['Platos Fuertes', 'Entradas', 'Bebidas', 'Postres'];
+  const categoriesInOrder: MenuItem['category'][] = ['Platos Fuertes', 'Platos a la Carta', 'Entradas', 'Bebidas', 'Postres'];
   
   const menuByCategory = categoriesInOrder.reduce((acc, category) => {
     const items = state.menuItems.filter(item => item.category === category && item.stock > 0);
@@ -51,7 +51,7 @@ export default function HomePage() {
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground dark">
         <header className="absolute top-0 z-50 w-full bg-gradient-to-b from-black/80 to-transparent">
             {/* Top bar */}
             <div className="container mx-auto flex h-16 items-center justify-between px-4 text-white">
