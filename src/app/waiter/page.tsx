@@ -227,14 +227,14 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             return (
                                 <div key={item.menuItemId} className="flex justify-between items-center text-sm">
                                     <span>{menuItem?.name} x {item.quantity}</span>
-                                    <span>${((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
+                                    <span>S/.{((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
                                 </div>
                             );
                         })}
                     </div>
                     <div className="font-bold text-lg flex justify-between pt-2 border-t">
                         <span>Total:</span>
-                        <span>${orderTotal.toFixed(2)}</span>
+                        <span>S/.{orderTotal.toFixed(2)}</span>
                     </div>
                 </div>
                 <SheetFooter>
@@ -269,7 +269,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                                 <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                                     <div>
                                         <p className="font-medium">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                                        <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
                                     </div>
                                     <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
                                         <Plus className="h-4 w-4" />
@@ -296,7 +296,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             <div key={orderItem.menuItemId} className="flex items-center justify-between">
                                 <div>
                                     <p className="font-medium">{menuItem.name}</p>
-                                    <p className="text-sm text-muted-foreground">${menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
+                                    <p className="text-sm text-muted-foreground">S/.{menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button size="icon" variant="ghost" onClick={() => removeFromOrder(orderItem.menuItemId)}>
@@ -312,7 +312,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                         })}
                         <div className="font-bold text-lg flex justify-between pt-2 border-t">
                             <span>Total:</span>
-                            <span>${newOrderTotal.toFixed(2)}</span>
+                            <span>S/.{newOrderTotal.toFixed(2)}</span>
                         </div>
                         </div>
                     )}

@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, Tag, Utensils, UtensilsCrossed } from 'lucide-react';
+import { LayoutDashboard, Tag, Utensils, UtensilsCrossed, BarChart3, Package } from 'lucide-react';
 
 export default function WaiterLayout({
   children,
@@ -35,16 +35,24 @@ export default function WaiterLayout({
       return <div className="flex h-screen w-screen items-center justify-center">Redirigiendo...</div>;
   }
 
-  const navItems = [
-    { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-    { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
-    { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
-  ];
-
+  let navItems;
   if (user.role === 'admin') {
-      navItems.push({ href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed });
-      navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
+    navItems = [
+      { href: '/admin', label: 'Reportes', icon: BarChart3 },
+      { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
+      { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
+      { href: '/admin/inventory', label: 'Inventario', icon: Package },
+      { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
+      { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },
+    ];
+  } else { // Waiter
+    navItems = [
+      { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
+      { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
+      { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
+    ];
   }
+
 
   return <div className="light"><DashboardLayout navItems={navItems}>{children}</DashboardLayout></div>;
 }

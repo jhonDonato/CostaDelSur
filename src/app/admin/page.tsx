@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BarChart, LineChart, PieChart } from 'lucide-react';
@@ -70,7 +71,7 @@ export default function AdminDashboardPage() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">S/.45,231.89</div>
             <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
           </CardContent>
         </Card>
@@ -80,7 +81,7 @@ export default function AdminDashboardPage() {
             <LineChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,890.45</div>
+            <div className="text-2xl font-bold">S/.12,890.45</div>
             <p className="text-xs text-muted-foreground">+15.3% desde el mes pasado</p>
           </CardContent>
         </Card>
@@ -107,7 +108,7 @@ export default function AdminDashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsBarChart data={salesData}>
                   <XAxis dataKey="day" stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                  <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `S/.${value}`} />
                   <Tooltip content={<ChartTooltipContent />} cursor={{fill: 'hsl(var(--muted))'}} />
                   <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </RechartsBarChart>
@@ -126,7 +127,7 @@ export default function AdminDashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                     <RechartsLineChart data={profitData}>
                         <XAxis dataKey="month" stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`} />
+                        <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `S/.${value/1000}k`} />
                         <Tooltip content={<ChartTooltipContent />} cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 2, strokeDasharray: "3 3"}} />
                         <Line type="monotone" dataKey="profit" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))", r:4 }} activeDot={{ r: 8, style: {stroke: "hsl(var(--background))"} }} />
                     </RechartsLineChart>

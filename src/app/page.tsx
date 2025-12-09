@@ -226,7 +226,7 @@ export default function HomePage() {
                                     <CardContent className="p-4 bg-card">
                                         <h3 className="text-lg font-bold font-headline text-card-foreground">{item.name}</h3>
                                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                                        <p className="text-xl font-bold text-primary mt-2">${item.price.toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-primary mt-2">S/.{item.price.toFixed(2)}</p>
                                     </CardContent>
                                 </Card>
                               </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
                                           <CardContent className="p-4 bg-card">
                                               <h3 className="text-lg font-bold font-headline text-card-foreground">{item.name}</h3>
                                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                                              <p className="text-xl font-bold text-primary mt-2">${item.price.toFixed(2)}</p>
+                                              <p className="text-xl font-bold text-primary mt-2">S/.{item.price.toFixed(2)}</p>
                                           </CardContent>
                                       </Card>
                                     </div>
@@ -352,5 +352,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

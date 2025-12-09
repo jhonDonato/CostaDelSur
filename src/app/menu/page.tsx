@@ -45,7 +45,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
        <div className="p-4 flex flex-col flex-grow">
           <h3 className="font-headline text-lg font-bold">{item.name}</h3>
           <p className="text-sm text-muted-foreground flex-grow mt-1">{item.description}</p>
-          <p className="text-lg font-bold text-primary mt-3">${item.price.toFixed(2)}</p>
+          <p className="text-lg font-bold text-primary mt-3">S/.{item.price.toFixed(2)}</p>
       </div>
     </Card>
   );
@@ -261,5 +261,3 @@ export default function CustomerMenuPage() {
         </Suspense>
     )
 }
-
-    
