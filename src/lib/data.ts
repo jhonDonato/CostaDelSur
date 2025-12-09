@@ -82,6 +82,24 @@ export const menuItems: MenuItem[] = [
     stock: 18,
     category: 'Platos a la Carta',
   },
+  {
+    id: '9',
+    name: 'Chicha Morada',
+    description: 'Jarra de 1 litro de refrescante chicha morada, hecha de maíz morado.',
+    price: 15.00,
+    image: 'https://picsum.photos/seed/chicha/600/400',
+    stock: 30,
+    category: 'Bebidas',
+  },
+  {
+    id: '10',
+    name: 'Inca Kola',
+    description: 'Gaseosa personal de 500ml, la bebida dorada del Perú.',
+    price: 5.00,
+    image: 'https://picsum.photos/seed/inka/600/400',
+    stock: 50,
+    category: 'Bebidas',
+  },
 ];
 
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({

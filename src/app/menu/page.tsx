@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Phone, Clock, AlertTriangle } from 'lucide-react';
@@ -60,19 +60,27 @@ function CustomerMenuPageContent() {
 
   const [isCallAlertOpen, setIsCallAlertOpen] = useState(false);
   const [tableNumberInput, setTableNumberInput] = useState('');
+  const [activeTab, setActiveTab] = useState('Entradas');
 
   const { menuItems } = state;
 
   const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
-  const menuByCategory = categories.reduce((acc, category) => {
-    const items = menuItems.filter(item => item.category === category && item.stock > 0);
-    if (items.length > 0) {
-      acc[category] = items;
-    }
-    return acc;
-  }, {} as Record<MenuItem['category'], MenuItem[]>);
+  
+  const menuByCategory = useMemo(() => {
+    return categories.reduce((acc, category) => {
+      const items = menuItems.filter(item => item.category === category && item.stock > 0);
+      if (items.length > 0) {
+        acc[category] = items;
+      }
+      return acc;
+    }, {} as Record<MenuItem['category'], MenuItem[]>);
+  }, [menuItems]);
 
   const displayCategories: (MenuItem['category'])[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta'];
+
+  const defaultTab = useMemo(() => 
+    Object.keys(menuByCategory).find(cat => displayCategories.includes(cat as any)) || '', 
+  [menuByCategory]);
 
   const handleCallWaiter = () => {
     if (tableQuery) {
@@ -137,16 +145,18 @@ function CustomerMenuPageContent() {
           <p className="text-muted-foreground mt-2">Sabores frescos del mar, directo a tu mesa.</p>
         </div>
         
-        <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800">
-            <Clock className="h-4 w-4 !text-blue-800" />
-            <AlertTitle>Tiempo de Preparación</AlertTitle>
-            <AlertDescription>
-                El tiempo de espera estimado para los platos es de 30 minutos. Agradecemos su paciencia.
-            </AlertDescription>
-        </Alert>
+        {activeTab === 'Platos a la Carta' && (
+          <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800">
+              <Clock className="h-4 w-4 !text-blue-800" />
+              <AlertTitle>Tiempo de Preparación</AlertTitle>
+              <AlertDescription>
+                  El tiempo de espera estimado para los platos a la carta es de 30 minutos. Agradecemos su paciencia.
+              </AlertDescription>
+          </Alert>
+        )}
 
         {Object.keys(menuByCategory).length > 0 ? (
-          <Tabs defaultValue={Object.keys(menuByCategory).find(cat => displayCategories.includes(cat as any))} className="w-full">
+          <Tabs defaultValue={defaultTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               {displayCategories.map((category) => (
                 menuByCategory[category] && <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
