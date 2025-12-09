@@ -150,6 +150,14 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
+  const categoryColors: Record<MenuItem['category'], string> = {
+    'Entradas': 'bg-blue-50',
+    'Platos Fuertes': 'bg-red-50',
+    'Platos a la Carta': 'bg-yellow-50',
+    'Bebidas': 'bg-green-50',
+    'Postres': 'bg-purple-50',
+  };
+
 
   const renderReceiptView = () => {
     const orderToDisplay = existingOrder;
@@ -260,20 +268,22 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     return (
         <>
             <div className="flex-1 overflow-y-auto pr-2 -mr-4">
-                 <Accordion type="multiple" defaultValue={orderCategories} className="w-full">
+                 <Accordion type="multiple" defaultValue={orderCategories} className="w-full space-y-2">
                     {orderCategories.map(category => (
                         menuByCategory[category] && (
-                            <AccordionItem value={category} key={category}>
-                                <AccordionTrigger className="font-semibold text-base py-3">{category}</AccordionTrigger>
+                            <AccordionItem value={category} key={category} className={`border-none rounded-lg ${categoryColors[category] || 'bg-gray-50'}`}>
+                                <AccordionTrigger className="font-semibold text-base py-3 px-4 hover:no-underline rounded-lg">
+                                  {category}
+                                </AccordionTrigger>
                                 <AccordionContent>
-                                    <div className="space-y-2 pt-2">
+                                    <div className="space-y-1 pt-2 px-4 pb-2">
                                         {menuByCategory[category].map(item => (
-                                        <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                        <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-background/50">
                                             <div>
                                                 <p className="font-medium">{item.name}</p>
                                                 <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
                                             </div>
-                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
+                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)} className="bg-white">
                                                 <Plus className="h-4 w-4" />
                                             </Button>
                                         </div>
