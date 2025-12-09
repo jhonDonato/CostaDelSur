@@ -55,16 +55,8 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
   const unreadNotifications = notifications.filter(n => !n.read);
 
   const checkIsActive = (itemHref: string) => {
-    // Exact match is always highest priority.
-    if (pathname === itemHref) return true;
-
-    // Avoids '/waiter' being active for '/waiter/offers'
-    if (pathname.startsWith(itemHref + '/')) return true;
-    
-    // Handle base routes like /admin
-    if (itemHref === '/admin' && pathname.startsWith('/admin/')) return true;
-
-    return false;
+    // Only exact match should be active.
+    return pathname === itemHref;
   }
 
   if (isLoading) {
