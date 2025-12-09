@@ -6,7 +6,6 @@ import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -259,27 +259,31 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
     return (
         <>
-            <div className="flex-1 overflow-y-auto pr-4 -mr-4">
-                {orderCategories.map(category => (
-                    menuByCategory[category] && (
-                        <div key={category} className="mb-4">
-                            <h3 className="font-semibold mb-2 sticky top-0 bg-background py-1">{category}</h3>
-                            <div className="space-y-2">
-                                {menuByCategory[category].map(item => (
-                                <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                    <div>
-                                        <p className="font-medium">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
+            <div className="flex-1 overflow-y-auto pr-2 -mr-4">
+                 <Accordion type="multiple" defaultValue={orderCategories} className="w-full">
+                    {orderCategories.map(category => (
+                        menuByCategory[category] && (
+                            <AccordionItem value={category} key={category}>
+                                <AccordionTrigger className="font-semibold text-base py-3">{category}</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2 pt-2">
+                                        {menuByCategory[category].map(item => (
+                                        <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                            <div>
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
+                                            </div>
+                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        ))}
                                     </div>
-                                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                ))}
-                            </div>
-                        </div>
-                    )
-                ))}
+                                </AccordionContent>
+                            </AccordionItem>
+                        )
+                    ))}
+                </Accordion>
             </div>
 
             <div className="border-t pt-4 space-y-4">
@@ -381,3 +385,5 @@ export default function WaiterDashboardPage() {
     </div>
   );
 }
+
+    
