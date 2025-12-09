@@ -125,7 +125,7 @@ function CustomerMenuPageContent() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-foreground">
        <div className="dark">
         <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-sm">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 text-white">

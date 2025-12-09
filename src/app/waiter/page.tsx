@@ -148,7 +148,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     return acc;
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
-  const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres'];
+  const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
 
   const renderReceiptView = () => {
