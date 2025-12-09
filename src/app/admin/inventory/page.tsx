@@ -76,15 +76,19 @@ export default function InventoryPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Stock de Platos</CardTitle>
-          <CardDescription>El sistema emitirá una alerta de voz cuando el stock de un plato sea igual o inferior a 5.</CardDescription>
+          <CardTitle>Control de Platos</CardTitle>
+          <CardDescription>
+            Gestiona la disponibilidad y las existencias de cada plato. El sistema alertará por voz cuando el stock de un plato sea 5 o menos.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Plato</TableHead>
-                <TableHead>Stock Actual</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead className="text-right">Precio</TableHead>
+                <TableHead className="text-center">Stock Actual</TableHead>
                 <TableHead>Nuevo Stock</TableHead>
                 <TableHead className="text-center">Disponible</TableHead>
               </TableRow>
@@ -93,7 +97,9 @@ export default function InventoryPage() {
               {state.menuItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell className="text-right">S/.{item.price.toFixed(2)}</TableCell>
+                  <TableCell className="text-center">
                     <span className={item.stock <= 5 && item.stock > 0 ? 'text-destructive font-bold' : ''}>
                       {item.stock}
                     </span>
