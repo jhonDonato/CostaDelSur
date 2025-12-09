@@ -36,7 +36,6 @@ export default function AdminLayout({
     { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
     { href: '/admin/inventory', label: 'Inventario', icon: Package },
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-    { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },
   ];
 
   return <div className="light"><DashboardLayout navItems={navItems}>{children}</DashboardLayout></div>;

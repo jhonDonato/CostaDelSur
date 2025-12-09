@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 
@@ -38,7 +39,7 @@ function ReservationForm() {
             return;
         }
 
-        const formattedDate = format(date, "PPP");
+        const formattedDate = format(date, "PPP", { locale: es });
         const message = `¡Hola! Quiero hacer una reserva a nombre de *${name}* para *${people} personas* el día *${formattedDate}* a las *${time}*.`;
         const whatsappUrl = `https://wa.me/51927325659?text=${encodeURIComponent(message)}`;
         
@@ -76,11 +77,12 @@ function ReservationForm() {
                                 )}
                                 >
                                 <Calendar className="mr-2 h-4 w-4" />
-                                {date ? format(date, "PPP") : <span>Elige una fecha</span>}
+                                {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                                 <CalendarComponent
+                                    locale={es}
                                     mode="single"
                                     selected={date}
                                     onSelect={setDate}
