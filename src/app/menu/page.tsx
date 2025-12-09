@@ -31,24 +31,21 @@ import { cn } from '@/lib/utils';
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
   return (
-    <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-transparent border-0 flex flex-col">
+    <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-card border flex flex-col">
       <div className="relative h-48 w-full">
         <Image
           src={item.image}
           alt={item.name}
           fill
-          className="object-cover rounded-md transition-transform duration-500 group-hover:scale-110"
+          className="object-cover rounded-t-md transition-transform duration-500 group-hover:scale-110"
           data-ai-hint={placeholder?.imageHint}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-md"></div>
-         <div className="absolute bottom-0 left-0 p-4">
-              <h3 className="font-headline text-lg font-bold text-white">{item.name}</h3>
-              <p className="text-lg font-bold text-primary mt-1">${item.price.toFixed(2)}</p>
-          </div>
       </div>
-       <div className="p-4 pt-2">
-          <p className="text-sm text-muted-foreground flex-grow">{item.description}</p>
+       <div className="p-4 flex flex-col flex-grow">
+          <h3 className="font-headline text-lg font-bold">{item.name}</h3>
+          <p className="text-sm text-muted-foreground flex-grow mt-1">{item.description}</p>
+          <p className="text-lg font-bold text-primary mt-3">${item.price.toFixed(2)}</p>
       </div>
     </Card>
   );
@@ -128,7 +125,8 @@ function CustomerMenuPageContent() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground dark">
+    <div className="min-h-screen bg-background text-foreground">
+       <div className="dark">
         <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-sm">
             {/* Top bar */}
             <div className="container mx-auto flex h-16 items-center justify-between px-4 border-b border-white/10">
@@ -165,12 +163,13 @@ function CustomerMenuPageContent() {
                 maskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
                 maskRepeat: 'no-repeat',
                 maskPosition: 'center top',
-                WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
+                WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%E%3C/path%3E%3C/svg%3E")',
                 WebkitMaskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center top',
               }}
             />
         </div>
+      </div>
       
       <main className="container mx-auto p-4 md:p-8 mt-4">
         <div className="text-center mb-12">
@@ -179,8 +178,8 @@ function CustomerMenuPageContent() {
         </div>
         
         {activeTab === 'Platos a la Carta' && (
-          <Alert className="mb-8 bg-blue-900/50 border-blue-500/50 text-blue-300">
-              <Clock className="h-4 w-4 !text-blue-300" />
+          <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800">
+              <Clock className="h-4 w-4 !text-blue-800" />
               <AlertTitle>Tiempo de Preparación</AlertTitle>
               <AlertDescription>
                   El tiempo de espera estimado para los platos a la carta es de 30 minutos. Agradecemos su paciencia.
@@ -190,7 +189,7 @@ function CustomerMenuPageContent() {
 
         {Object.keys(menuByCategory).length > 0 ? (
           <Tabs defaultValue={defaultTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary">
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-secondary/80">
               {displayCategories.map((category) => (
                 menuByCategory[category] && <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{category}</TabsTrigger>
               ))}
@@ -198,7 +197,7 @@ function CustomerMenuPageContent() {
             
             {Object.entries(menuByCategory).map(([category, items]) => (
               <TabsContent key={category} value={category}>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {items.map((item) => (
                     <MenuItemCard key={item.id} item={item} />
                   ))}
@@ -245,7 +244,7 @@ function CustomerMenuPageContent() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <footer className="bg-card py-8 mt-16 border-t border-white/10">
+      <footer className="bg-card py-8 mt-16 border-t">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Marisquería Online. Todos los derechos reservados.</p>
             <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (123) 456-7890</p>
@@ -258,11 +257,7 @@ function CustomerMenuPageContent() {
 export default function CustomerMenuPage() {
     return (
         <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center">Cargando...</div>}>
-          <div className="dark">
             <CustomerMenuPageContent />
-          </div>
         </Suspense>
     )
 }
-
-    

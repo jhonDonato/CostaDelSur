@@ -14,30 +14,6 @@ import { Logo } from '@/components/icons';
 import type { MenuItem } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-function MenuItemCarouselCard({ item }: { item: MenuItem }) {
-  const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
-  return (
-    <Card className="overflow-hidden h-full group bg-transparent border-0 shadow-none">
-        <div className="relative h-60 w-full">
-            <Image
-                src={item.image}
-                alt={item.name}
-                fill
-                className="object-cover rounded-lg transition-transform duration-500 group-hover:scale-110"
-                data-ai-hint={placeholder?.imageHint}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-lg"></div>
-            <div className="absolute bottom-0 left-0 p-4">
-                <h3 className="text-lg font-bold font-headline text-white">{item.name}</h3>
-                <p className="text-sm text-white/80 mt-1 line-clamp-2">{item.description}</p>
-                 <p className="text-xl font-bold text-primary mt-2">${item.price.toFixed(2)}</p>
-            </div>
-        </div>
-    </Card>
-  );
-}
-
 export default function HomePage() {
   const { state } = useAppState();
   const allAvailableItems = state.menuItems.filter(item => item.stock > 0);
@@ -81,7 +57,7 @@ export default function HomePage() {
             </nav>
         </header>
 
-        <main className="dark">
+        <main>
             <section className="relative h-screen w-full">
                 <div className="absolute inset-0 z-0">
                     <Image 
@@ -138,17 +114,17 @@ export default function HomePage() {
                 >
                     <CarouselContent className="-ml-4">
                         {allAvailableItems.map(item => (
-                            <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4 py-2">
+                            <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3 pl-4 py-2">
                               <div className="p-1">
                                 <Card className="overflow-hidden h-full group bg-card border shadow-sm">
-                                    <div className="relative h-60 w-full">
+                                    <div className="relative h-80 w-full">
                                         <Image
                                             src={item.image}
                                             alt={item.name}
                                             fill
                                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                                             data-ai-hint={PlaceHolderImages.find(p => p.imageUrl === item.image)?.imageHint}
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            sizes="(max-width: 768px) 100vw, 50vw, 33vw"
                                         />
                                     </div>
                                     <CardContent className="p-4">
