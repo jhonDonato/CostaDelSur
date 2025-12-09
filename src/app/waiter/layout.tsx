@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, Tag, Utensils, UtensilsCrossed, BarChart3, Package } from 'lucide-react';
+import { LayoutDashboard, Tag, Utensils, BarChart3, Package, Calendar, Notebook } from 'lucide-react';
 
 export default function WaiterLayout({
   children,
@@ -43,6 +43,8 @@ export default function WaiterLayout({
       { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
       { href: '/admin/inventory', label: 'Inventario', icon: Package },
       { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
+      { href: '/admin/calendar', label: 'Calendario', icon: Calendar },
+      { href: '/admin/notes', label: 'Notas', icon: Notebook },
     ];
   } else { // Waiter
     navItems = [

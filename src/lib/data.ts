@@ -1,5 +1,6 @@
 
-import type { User, MenuItem, Table, Order, Offer } from '@/lib/types';
+
+import type { User, MenuItem, Table, Order, Offer, CalendarEvent, Note } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -160,6 +161,36 @@ export const initialOrders: Order[] = [
     estimatedDeliveryTime: 20,
   },
 ];
+
+export const initialCalendarEvents: CalendarEvent[] = [
+    {
+        id: 'event-1',
+        date: new Date(new Date().setDate(new Date().getDate() + 5)),
+        title: 'Reunión de Personal',
+        description: 'Revisión mensual de objetivos y desempeño.'
+    },
+     {
+        id: 'event-2',
+        date: new Date(new Date().setDate(new Date().getDate() + 10)),
+        title: 'Inspección Sanitaria',
+        description: 'Preparar todas las áreas para la inspección anual.'
+    }
+]
+
+export const initialNotes: Note[] = [
+    {
+        id: 'note-1',
+        title: 'Tareas de Mantenimiento Semanal',
+        content: '- Limpieza profunda de la campana extractora.\n- Revisar niveles de gas de los refrigeradores.\n- Afilar cuchillos.',
+        createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000
+    },
+    {
+        id: 'note-2',
+        title: 'Contacto Proveedores',
+        content: '- Pescados Juanito: 987654321\n- Verduras Frescas S.A: 912345678',
+        createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000
+    }
+]
 
 // Associate initial orders with tables
 initialOrders.forEach(order => {

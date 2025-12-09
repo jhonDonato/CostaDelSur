@@ -1,4 +1,5 @@
 
+
 export type User = {
   id: string;
   name: string;
@@ -42,7 +43,7 @@ export type Table = {
 export type Notification = {
   id: string;
   message: string;
-  type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due';
+  type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due' | 'event-reminder';
   timestamp: number;
   read: boolean;
   tableId?: number;
@@ -55,3 +56,17 @@ export type Offer = {
   image: string;
   published: boolean;
 };
+
+export type CalendarEvent = {
+    id: string;
+    date: Date;
+    title: string;
+    description: string;
+}
+
+export type Note = {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: number;
+}
