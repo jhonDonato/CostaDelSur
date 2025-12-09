@@ -4,7 +4,7 @@
 import React, { Suspense, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone, Clock, AlertTriangle, Home, Utensils, User } from 'lucide-react';
+import { Phone, Clock, AlertTriangle, Home, Utensils, User, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -128,8 +128,7 @@ function CustomerMenuPageContent() {
     <div className="min-h-screen bg-background text-foreground">
        <div className="dark">
         <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-sm">
-            {/* Top bar */}
-            <div className="container mx-auto flex h-16 items-center justify-between px-4 border-b border-white/10">
+            <div className="container mx-auto flex h-16 items-center justify-between px-4 text-white">
                 <div className="flex items-center gap-4 text-sm">
                     <Phone className="h-4 w-4" />
                     <span>(123) 456-7890</span>
@@ -142,16 +141,17 @@ function CustomerMenuPageContent() {
                     {tableQuery && (
                       <div className="font-semibold rounded-md bg-secondary text-secondary-foreground px-3 py-1 text-sm">Mesa {tableQuery}</div>
                     )}
-                    <Link href="/login" passHref>
-                        <Button variant="ghost" size="sm">Acceso Personal</Button>
+                     <Link href="/login" passHref>
+                        <Button variant="outline" size="sm" className="bg-transparent border-white/50 text-white hover:bg-white/10 hover:text-white">Acceso Personal</Button>
                     </Link>
                 </div>
             </div>
-            {/* Nav bar */}
             <nav className="container mx-auto flex h-14 items-center justify-center px-4">
                 <div className="flex items-center gap-8 text-sm font-medium">
-                    <Link href="/" className="text-foreground/80 hover:text-primary transition-colors">Inicio</Link>
+                    <Link href="/" className="text-white/80 hover:text-primary transition-colors">Inicio</Link>
                     <Link href="/menu" className="text-primary font-semibold border-b-2 border-primary pb-1">Menú</Link>
+                    <Link href="/#ofertas" className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
+                    <Link href="/#reservas" className="text-white/80 hover:text-primary transition-colors">Reservas</Link>
                 </div>
             </nav>
         </header>
@@ -163,7 +163,7 @@ function CustomerMenuPageContent() {
                 maskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
                 maskRepeat: 'no-repeat',
                 maskPosition: 'center top',
-                WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%E%3C/path%3E%3C/svg%3E")',
+                WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
                 WebkitMaskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center top',
               }}
@@ -261,3 +261,5 @@ export default function CustomerMenuPage() {
         </Suspense>
     )
 }
+
+    

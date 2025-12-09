@@ -147,6 +147,8 @@ export default function HomePage() {
                 <div className="flex items-center gap-8 text-sm font-medium">
                     <Link href="/" className="text-primary font-semibold border-b-2 border-primary pb-1">Inicio</Link>
                     <Link href="/menu" className="text-white/80 hover:text-primary transition-colors">Menú</Link>
+                    <Link href="/#ofertas" className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
+                    <Link href="/#reservas" className="text-white/80 hover:text-primary transition-colors">Reservas</Link>
                 </div>
             </nav>
         </header>
@@ -238,7 +240,7 @@ export default function HomePage() {
             )}
           
             {publishedOffers.length > 0 && (
-              <div>
+              <div id="ofertas">
                 <div className="text-center mb-10">
                     <h3 className="text-4xl font-bold font-headline tracking-tight flex items-center justify-center gap-3"><Tag className="h-8 w-8 text-primary"/> Nuestras Ofertas</h3>
                     <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Aprovecha nuestras promociones especiales por tiempo limitado.</p>
@@ -320,7 +322,7 @@ export default function HomePage() {
           </div>
       </section>
 
-      <section className="py-20 bg-muted/20">
+      <section id="reservas" className="py-20 bg-muted/20">
         <div className="container mx-auto px-4">
             <div className="text-center mb-12">
                 <h3 className="text-4xl font-bold font-headline tracking-tight">Haz tu Reserva</h3>
@@ -350,3 +352,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
