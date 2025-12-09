@@ -26,7 +26,7 @@ const menuItemSchema = z.object({
     (a) => parseFloat(z.string().parse(a)),
     z.number().positive("El precio debe ser un número positivo.")
   ),
-  category: z.enum(['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres']),
+  category: z.enum(['Entradas', 'Platos a la Carta', 'Platos Fuertes', 'Bebidas', 'Postres']),
   stock: z.preprocess(
     (a) => parseInt(z.string().parse(a), 10),
     z.number().min(0, "El stock no puede ser negativo.")
@@ -191,6 +191,7 @@ export default function MenuEditorPage() {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="Entradas">Entradas</SelectItem>
+                                        <SelectItem value="Platos Fuertes">Platos Fuertes</SelectItem>
                                         <SelectItem value="Platos a la Carta">Platos a la Carta</SelectItem>
                                         <SelectItem value="Bebidas">Bebidas</SelectItem>
                                         <SelectItem value="Postres">Postres</SelectItem>

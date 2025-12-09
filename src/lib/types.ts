@@ -12,7 +12,7 @@ export type MenuItem = {
   price: number;
   image: string;
   stock: number;
-  category: 'Entradas' | 'Platos a la Carta' | 'Bebidas' | 'Postres';
+  category: 'Entradas' | 'Platos Fuertes' | 'Platos a la Carta' | 'Bebidas' | 'Postres';
 };
 
 export type OrderItem = {

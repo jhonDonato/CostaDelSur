@@ -37,9 +37,11 @@ function MenuItemCarouselCard({ item }: { item: MenuItem }) {
 
 export default function HomePage() {
   const { state } = useAppState();
+  const allAvailableItems = state.menuItems.filter(item => item.stock > 0);
 
-  const categories: MenuItem['category'][] = ['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres'];
-  const menuByCategory = categories.reduce((acc, category) => {
+  const categoriesInOrder: MenuItem['category'][] = ['Platos Fuertes', 'Entradas', 'Bebidas', 'Platos a la Carta', 'Postres'];
+  
+  const menuByCategory = categoriesInOrder.reduce((acc, category) => {
     const items = state.menuItems.filter(item => item.category === category && item.stock > 0);
     if (items.length > 0) {
       acc[category] = items;
@@ -90,16 +92,40 @@ export default function HomePage() {
         </section>
 
         <section className="py-16 bg-card/50">
-            <div className="container mx-auto px-4 space-y-16">
+            <div className="container mx-auto px-4 space-y-12">
+
+              {allAvailableItems.length > 0 && (
+                <div>
+                  <div className="text-center mb-8">
+                      <h3 className="text-4xl font-bold font-headline">Platos Destacados</h3>
+                      <p className="text-muted-foreground mt-2">Una selección de nuestros mejores platos.</p>
+                  </div>
+                  <Carousel 
+                      opts={{ loop: true, align: 'start' }} 
+                      plugins={[Autoplay({ delay: 3000, stopOnInteraction: false })]}
+                      className="w-full"
+                  >
+                      <CarouselContent className="-ml-4">
+                          {allAvailableItems.map(item => (
+                              <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
+                                   <Card className="overflow-hidden h-96">
+                                      <MenuItemCarouselCard item={item} />
+                                   </Card>
+                              </CarouselItem>
+                          ))}
+                      </CarouselContent>
+                  </Carousel>
+                </div>
+              )}
+            
               {Object.entries(menuByCategory).map(([category, items]) => (
                 <div key={category}>
                     <div className="text-center mb-8">
-                        <h3 className="text-4xl font-bold font-headline">{category}</h3>
-                        <p className="text-muted-foreground mt-2">Nuestra selección de {category.toLowerCase()}.</p>
+                        <h3 className="text-3xl font-bold font-headline">{category}</h3>
                     </div>
                     <Carousel 
                         opts={{ loop: true, align: 'start' }} 
-                        plugins={[Autoplay({ delay: 3000, stopOnInteraction: false })]}
+                        plugins={[Autoplay({ delay: 5000, stopOnInteraction: true })]}
                         className="w-full"
                     >
                         <CarouselContent className="-ml-4">

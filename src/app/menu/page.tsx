@@ -63,7 +63,7 @@ function CustomerMenuPageContent() {
 
   const { menuItems } = state;
 
-  const categories: MenuItem['category'][] = ['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres'];
+  const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
   const menuByCategory = categories.reduce((acc, category) => {
     const items = menuItems.filter(item => item.category === category && item.stock > 0);
     if (items.length > 0) {
@@ -71,6 +71,8 @@ function CustomerMenuPageContent() {
     }
     return acc;
   }, {} as Record<MenuItem['category'], MenuItem[]>);
+
+  const displayCategories: (MenuItem['category'])[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta'];
 
   const handleCallWaiter = () => {
     if (tableQuery) {
@@ -144,9 +146,9 @@ function CustomerMenuPageContent() {
         </Alert>
 
         {Object.keys(menuByCategory).length > 0 ? (
-          <Tabs defaultValue={Object.keys(menuByCategory)[0]} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
-              {categories.map((category) => (
+          <Tabs defaultValue={Object.keys(menuByCategory).find(cat => displayCategories.includes(cat as any))} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              {displayCategories.map((category) => (
                 menuByCategory[category] && <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
               ))}
             </TabsList>
