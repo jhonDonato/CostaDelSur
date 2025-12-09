@@ -79,11 +79,11 @@ export default function HomePage() {
                 priority
             />
             <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center text-white p-4">
-                <h2 className="text-5xl md:text-7xl font-bold font-headline drop-shadow-lg animate-fade-in-down">El Sabor Auténtico del Mar</h2>
-                <p className="mt-4 max-w-2xl text-lg md:text-xl drop-shadow-md animate-fade-in-up">
+                <h2 className="text-5xl md:text-7xl font-bold font-headline drop-shadow-lg animate-fade-in-down" style={{animation: 'fade-in-down 1s ease-out forwards'}}>El Sabor Auténtico del Mar</h2>
+                <p className="mt-4 max-w-2xl text-lg md:text-xl drop-shadow-md animate-fade-in-up" style={{animation: 'fade-in-up 1s ease-out 0.5s forwards', opacity: 0}}>
                     Una experiencia culinaria que captura la frescura y la tradición de la costa en cada plato.
                 </p>
-                 <div className="mt-8">
+                 <div className="mt-8" style={{animation: 'fade-in-up 1s ease-out 1s forwards', opacity: 0}}>
                    <Link href="/menu" passHref>
                      <Button size="lg" className="text-lg">Ver Menú Completo</Button>
                    </Link>
