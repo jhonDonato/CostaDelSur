@@ -50,7 +50,7 @@ export default function NotesPage() {
 
   const exportToWhatsApp = (note: Note) => {
     const message = `*${note.title}*\n\n${note.content}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/51927325659?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -61,7 +61,7 @@ export default function NotesPage() {
         'Fecha de Creacion': format(note.createdAt, 'yyyy-MM-dd HH:mm'),
     }));
     const csv = Papa.unparse(data);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
@@ -137,7 +137,7 @@ export default function NotesPage() {
             <h2 className="text-2xl font-bold font-headline mb-4">Notas Guardadas</h2>
             {state.notes.length > 0 ? (
                 <div className="space-y-4">
-                    {state.notes.map(note => (
+                    {state.notes.sort((a, b) => b.createdAt - a.createdAt).map(note => (
                         <Card key={note.id}>
                             <CardHeader>
                                 <div className="flex justify-between items-start">
