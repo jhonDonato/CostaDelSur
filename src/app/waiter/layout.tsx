@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, Package, Utensils, UtensilsCrossed } from 'lucide-react';
+import { LayoutDashboard, Tag, Utensils, UtensilsCrossed } from 'lucide-react';
 
 export default function WaiterLayout({
   children,
@@ -38,6 +38,7 @@ export default function WaiterLayout({
   const navItems = [
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
     { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
+    { href: '/admin/offers', label: 'Ofertas', icon: Tag },
   ];
 
   if (user.role === 'admin') {

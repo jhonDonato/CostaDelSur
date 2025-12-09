@@ -1,4 +1,5 @@
-import type { User, MenuItem, Table, Order } from '@/lib/types';
+
+import type { User, MenuItem, Table, Order, Offer } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -101,6 +102,24 @@ export const menuItems: MenuItem[] = [
     category: 'Bebidas',
   },
 ];
+
+export const offers: Offer[] = [
+  {
+    id: 'offer-1',
+    title: '2x1 en Chilcanos',
+    description: 'Todos los jueves, pide un chilcano y llévate el segundo gratis. ¡La mejor manera de empezar el fin de semana!',
+    image: 'https://images.unsplash.com/photo-1596231920875-1a06a6c1236c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaGlsY2Fub3xlbnwwfHx8fDE3NjU4NTg5ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    published: true,
+  },
+  {
+    id: 'offer-2',
+    title: 'Gaseosa Gratis',
+    description: 'Por la compra de dos platos a la carta, llévate una gaseosa de 1 litro totalmente gratis.',
+    image: 'https://images.unsplash.com/photo-1581014122131-b17a3564993a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2RhJTIwZmxhc2h8ZW58MHx8fHwxNzY1ODU5MDMyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    published: true,
+  },
+];
+
 
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,

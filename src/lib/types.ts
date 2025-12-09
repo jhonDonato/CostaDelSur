@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   name: string;
@@ -45,4 +46,12 @@ export type Notification = {
   timestamp: number;
   read: boolean;
   tableId?: number;
+};
+
+export type Offer = {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  published: boolean;
 };

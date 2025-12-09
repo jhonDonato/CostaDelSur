@@ -3,8 +3,8 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useState, useReducer, useEffect, useCallback } from 'react';
-import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem } from '@/lib/types';
-import { tables as initialTables, menuItems as initialMenuItems, initialOrders } from '@/lib/data';
+import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer } from '@/lib/types';
+import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers } from '@/lib/data';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 
 type RestaurantState = {
@@ -12,6 +12,7 @@ type RestaurantState = {
   menuItems: MenuItem[];
   orders: Order[];
   notifications: Notification[];
+  offers: Offer[];
 };
 
 type Action =
@@ -22,6 +23,7 @@ type Action =
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
   | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> & { id: string } }
+  | { type: 'UPDATE_OFFER'; payload: Offer }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number }};
 
@@ -177,6 +179,22 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             };
         }
     }
+     case 'UPDATE_OFFER': {
+        const { id, ...data } = action.payload;
+        const exists = state.offers.some(offer => offer.id === id);
+        if (exists) {
+            return {
+                ...state,
+                offers: state.offers.map(offer =>
+                    offer.id === id ? { ...offer, ...data } : offer
+                ),
+            };
+        }
+        return { // Add new offer
+            ...state,
+            offers: [...state.offers, action.payload],
+        };
+    }
     case 'SET_ORDER_TIMER':
         return {
             ...state,
@@ -202,6 +220,7 @@ const initialState: RestaurantState = {
   menuItems: initialMenuItems,
   orders: initialOrders,
   notifications: [],
+  offers: initialOffers,
 };
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
@@ -295,7 +314,3 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
-
-    
-
-    
