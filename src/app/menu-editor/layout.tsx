@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, BarChart3, Package, Utensils, UtensilsCrossed } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Package, Utensils, Tag } from 'lucide-react';
 
 export default function MenuEditorLayout({
   children,
@@ -36,6 +36,7 @@ export default function MenuEditorLayout({
       navItems = [
         { href: '/admin', label: 'Reportes', icon: BarChart3 },
         { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
+        { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
         { href: '/admin/inventory', label: 'Inventario', icon: Package },
         { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
         { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },
@@ -44,6 +45,7 @@ export default function MenuEditorLayout({
       navItems = [
         { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
         { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
+        { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
       ];
   }
 

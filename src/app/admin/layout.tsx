@@ -33,7 +33,7 @@ export default function AdminLayout({
   const navItems = [
     { href: '/admin', label: 'Reportes', icon: BarChart3 },
     { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
-    { href: '/admin/offers', label: 'Ofertas', icon: Tag },
+    { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
     { href: '/admin/inventory', label: 'Inventario', icon: Package },
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
     { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },

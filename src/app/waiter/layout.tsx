@@ -38,7 +38,7 @@ export default function WaiterLayout({
   const navItems = [
     { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
     { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
-    { href: '/admin/offers', label: 'Ofertas', icon: Tag },
+    { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
   ];
 
   if (user.role === 'admin') {
