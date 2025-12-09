@@ -31,24 +31,24 @@ import { cn } from '@/lib/utils';
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 bg-card border-border">
+    <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-card border-border flex flex-col">
       <div className="relative h-48 w-full">
         <Image
           src={item.image}
           alt={item.name}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
           data-ai-hint={placeholder?.imageHint}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-            <CardTitle className="font-headline text-lg text-foreground">{item.name}</CardTitle>
-            <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
-        </div>
-        <CardDescription className="pt-2">{item.description}</CardDescription>
-      </CardHeader>
+      <div className="p-4 flex flex-col flex-grow">
+          <div className="flex justify-between items-start mb-2">
+              <h3 className="font-headline text-lg font-bold text-foreground">{item.name}</h3>
+              <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
+          </div>
+          <p className="text-sm text-muted-foreground flex-grow">{item.description}</p>
+      </div>
     </Card>
   );
 }
@@ -263,3 +263,5 @@ export default function CustomerMenuPage() {
         </Suspense>
     )
 }
+
+    
