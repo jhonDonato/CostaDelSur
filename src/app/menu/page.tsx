@@ -31,22 +31,23 @@ import { cn } from '@/lib/utils';
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
   return (
-    <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-card border-border flex flex-col">
+    <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-transparent border-0 flex flex-col">
       <div className="relative h-48 w-full">
         <Image
           src={item.image}
           alt={item.name}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          className="object-cover rounded-md transition-transform duration-500 group-hover:scale-110"
           data-ai-hint={placeholder?.imageHint}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-      </div>
-      <div className="p-4 flex flex-col flex-grow">
-          <div className="flex justify-between items-start mb-2">
-              <h3 className="font-headline text-lg font-bold text-foreground">{item.name}</h3>
-              <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-md"></div>
+         <div className="absolute bottom-0 left-0 p-4">
+              <h3 className="font-headline text-lg font-bold text-white">{item.name}</h3>
+              <p className="text-lg font-bold text-primary mt-1">${item.price.toFixed(2)}</p>
           </div>
+      </div>
+       <div className="p-4 pt-2">
           <p className="text-sm text-muted-foreground flex-grow">{item.description}</p>
       </div>
     </Card>

@@ -17,21 +17,22 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 function MenuItemCarouselCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
   return (
-    <Card className="overflow-hidden h-full group bg-card border-border flex flex-col">
-        <div className="relative h-48 w-full">
+    <Card className="overflow-hidden h-full group bg-transparent border-0 shadow-none">
+        <div className="relative h-60 w-full">
             <Image
                 src={item.image}
                 alt={item.name}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="object-cover rounded-lg transition-transform duration-500 group-hover:scale-110"
                 data-ai-hint={placeholder?.imageHint}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-        </div>
-        <div className="p-4 flex flex-col flex-grow">
-            <h3 className="text-lg font-bold font-headline text-foreground">{item.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1 mb-2 line-clamp-2 flex-grow">{item.description}</p>
-            <p className="text-xl font-bold text-primary">${item.price.toFixed(2)}</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-lg"></div>
+            <div className="absolute bottom-0 left-0 p-4">
+                <h3 className="text-lg font-bold font-headline text-white">{item.name}</h3>
+                <p className="text-sm text-white/80 mt-1 line-clamp-2">{item.description}</p>
+                 <p className="text-xl font-bold text-primary mt-2">${item.price.toFixed(2)}</p>
+            </div>
         </div>
     </Card>
   );
@@ -184,5 +185,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
