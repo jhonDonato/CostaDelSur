@@ -4,7 +4,7 @@
 import React, { Suspense, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone, Clock, AlertTriangle } from 'lucide-react';
+import { Phone, Clock, AlertTriangle, Home, Utensils, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,11 +26,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 bg-card border-border">
       <div className="relative h-48 w-full">
         <Image
           src={item.image}
@@ -43,7 +44,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
       </div>
       <CardHeader>
         <div className="flex justify-between items-start">
-            <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
+            <CardTitle className="font-headline text-lg text-foreground">{item.name}</CardTitle>
             <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
         </div>
         <CardDescription className="pt-2">{item.description}</CardDescription>
@@ -79,8 +80,8 @@ function CustomerMenuPageContent() {
   const displayCategories: (MenuItem['category'])[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta'];
 
   const defaultTab = useMemo(() => 
-    Object.keys(menuByCategory).find(cat => displayCategories.includes(cat as any)) || '', 
-  [menuByCategory]);
+    Object.keys(menuByCategory).find(cat => displayCategories.includes(cat as any)) || 'Entradas', 
+  [menuByCategory, displayCategories]);
 
   const handleCallWaiter = () => {
     if (tableQuery) {
@@ -126,28 +127,59 @@ function CustomerMenuPageContent() {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-           <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold font-headline">Marisquería Online</h1>
-          </Link>
-          {tableQuery && (
-            <div className="font-semibold rounded-md bg-secondary text-secondary-foreground px-3 py-1">Mesa {tableQuery}</div>
-          )}
+    <div className="min-h-screen bg-background text-foreground">
+        <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-sm">
+            {/* Top bar */}
+            <div className="container mx-auto flex h-16 items-center justify-between px-4 border-b border-white/10">
+                <div className="flex items-center gap-4 text-sm">
+                    <Phone className="h-4 w-4" />
+                    <span>(123) 456-7890</span>
+                </div>
+                <Link href="/" className="flex flex-col items-center">
+                    <Logo className="h-10 w-10 text-primary" />
+                    <span className="text-xl font-bold tracking-tighter">Marisquería</span>
+                </Link>
+                <div className="flex items-center gap-4">
+                    {tableQuery && (
+                      <div className="font-semibold rounded-md bg-secondary text-secondary-foreground px-3 py-1 text-sm">Mesa {tableQuery}</div>
+                    )}
+                    <Link href="/login" passHref>
+                        <Button variant="ghost" size="sm">Acceso Personal</Button>
+                    </Link>
+                </div>
+            </div>
+            {/* Nav bar */}
+            <nav className="container mx-auto flex h-14 items-center justify-center px-4">
+                <div className="flex items-center gap-8 text-sm font-medium">
+                    <Link href="/" className="text-foreground/80 hover:text-primary transition-colors">Inicio</Link>
+                    <Link href="/menu" className="text-primary font-semibold border-b-2 border-primary pb-1">Menú</Link>
+                </div>
+            </nav>
+        </header>
+
+        <div className="relative">
+            <div 
+              className="absolute inset-x-0 top-0 h-16 bg-background"
+              style={{
+                maskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center top',
+                WebkitMaskImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'black\' fill-opacity=\'1\' d=\'M0,128L120,133.3C240,139,480,149,720,149.3C960,149,1200,139,1320,133.3L1440,128L1440,0L1320,0C1200,0,960,0,720,0C480,0,240,0,120,0L0,0Z\'%3E%3C/path%3E%3C/svg%3E")',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center top',
+              }}
+            />
         </div>
-      </header>
       
-      <main className="container mx-auto p-4 md:p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold font-headline">Nuestro Menú</h2>
+      <main className="container mx-auto p-4 md:p-8 mt-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold font-headline tracking-tight">Nuestro Menú</h2>
           <p className="text-muted-foreground mt-2">Sabores frescos del mar, directo a tu mesa.</p>
         </div>
         
         {activeTab === 'Platos a la Carta' && (
-          <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800">
-              <Clock className="h-4 w-4 !text-blue-800" />
+          <Alert className="mb-8 bg-blue-900/50 border-blue-500/50 text-blue-300">
+              <Clock className="h-4 w-4 !text-blue-300" />
               <AlertTitle>Tiempo de Preparación</AlertTitle>
               <AlertDescription>
                   El tiempo de espera estimado para los platos a la carta es de 30 minutos. Agradecemos su paciencia.
@@ -157,9 +189,9 @@ function CustomerMenuPageContent() {
 
         {Object.keys(menuByCategory).length > 0 ? (
           <Tabs defaultValue={defaultTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary">
               {displayCategories.map((category) => (
-                menuByCategory[category] && <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                menuByCategory[category] && <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{category}</TabsTrigger>
               ))}
             </TabsList>
             
@@ -182,7 +214,7 @@ function CustomerMenuPageContent() {
 
       <Button
         onClick={handleCallWaiter}
-        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground"
         size="icon"
       >
         <Phone className="h-8 w-8" />
@@ -211,6 +243,13 @@ function CustomerMenuPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <footer className="bg-card py-8 mt-16 border-t border-white/10">
+        <div className="container mx-auto px-4 text-center text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Marisquería Online. Todos los derechos reservados.</p>
+            <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (123) 456-7890</p>
+        </div>
+      </footer>
     </div>
   );
 }
