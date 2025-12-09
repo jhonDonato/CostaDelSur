@@ -44,7 +44,6 @@ export default function MenuEditorLayout({
       navItems = [
         { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
         { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
-        { href: '/kitchen', label: 'Cocina', icon: UtensilsCrossed },
       ];
   }
 
