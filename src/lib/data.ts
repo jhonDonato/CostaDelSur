@@ -26,7 +26,7 @@ export const menuItems: MenuItem[] = [
     price: 45.00,
     image: getImage('arroz-con-mariscos'),
     stock: 20,
-    category: 'Platos Fuertes',
+    category: 'Platos a la Carta',
   },
   {
     id: '3',
@@ -35,7 +35,7 @@ export const menuItems: MenuItem[] = [
     price: 40.00,
     image: getImage('pescado-frito'),
     stock: 10,
-    category: 'Platos Fuertes',
+    category: 'Platos a la Carta',
   },
   {
     id: '4',
@@ -44,7 +44,7 @@ export const menuItems: MenuItem[] = [
     price: 55.00,
     image: getImage('pulpo-a-la-parrilla'),
     stock: 8,
-    category: 'Platos Fuertes',
+    category: 'Platos a la Carta',
   },
   {
     id: '5',
@@ -71,7 +71,7 @@ export const menuItems: MenuItem[] = [
     price: 50.00,
     image: getImage('sopa-parihuela'),
     stock: 7,
-    category: 'Platos Fuertes',
+    category: 'Platos a la Carta',
   },
   {
     id: '8',
@@ -80,7 +80,7 @@ export const menuItems: MenuItem[] = [
     price: 60.00,
     image: getImage('jalea-mixta'),
     stock: 18,
-    category: 'Platos Fuertes',
+    category: 'Platos a la Carta',
   },
 ];
 

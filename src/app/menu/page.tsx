@@ -4,7 +4,7 @@
 import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Phone, AlertTriangle } from 'lucide-react';
+import { Phone, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
@@ -62,7 +63,7 @@ function CustomerMenuPageContent() {
 
   const { menuItems } = state;
 
-  const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres'];
+  const categories: MenuItem['category'][] = ['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres'];
   const menuByCategory = categories.reduce((acc, category) => {
     const items = menuItems.filter(item => item.category === category && item.stock > 0);
     if (items.length > 0) {
@@ -73,7 +74,6 @@ function CustomerMenuPageContent() {
 
   const handleCallWaiter = () => {
     if (tableQuery) {
-        // If table is in URL, call directly
         const tableId = parseInt(tableQuery, 10);
         if (isNaN(tableId)) {
              toast({
@@ -90,7 +90,6 @@ function CustomerMenuPageContent() {
             variant: "default",
         });
     } else {
-        // If no table in URL, open dialog to ask for it
         setIsCallAlertOpen(true);
     }
   };
@@ -135,12 +134,20 @@ function CustomerMenuPageContent() {
           <h2 className="text-4xl font-bold font-headline">Nuestro Menú</h2>
           <p className="text-muted-foreground mt-2">Sabores frescos del mar, directo a tu mesa.</p>
         </div>
+        
+        <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800">
+            <Clock className="h-4 w-4 !text-blue-800" />
+            <AlertTitle>Tiempo de Preparación</AlertTitle>
+            <AlertDescription>
+                El tiempo de espera estimado para los platos es de 30 minutos. Agradecemos su paciencia.
+            </AlertDescription>
+        </Alert>
 
         {Object.keys(menuByCategory).length > 0 ? (
           <Tabs defaultValue={Object.keys(menuByCategory)[0]} className="w-full">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
-              {Object.keys(menuByCategory).map((category) => (
-                <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+              {categories.map((category) => (
+                menuByCategory[category] && <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
               ))}
             </TabsList>
             

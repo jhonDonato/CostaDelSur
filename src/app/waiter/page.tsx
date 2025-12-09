@@ -111,8 +111,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         title: "Pedido Entregado",
         description: `El pedido de la mesa ${tableId} ha sido marcado como entregado.`
       });
-      // The view will update automatically, no need to close the sheet.
-      // The button will be replaced by the "Desocupar Mesa" button.
     }
   };
 
@@ -124,7 +122,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const handlePayAndClose = () => {
       if (existingOrder) {
-        // Double-check status update in case it wasn't delivered yet.
         if (existingOrder.status !== 'delivered') {
           dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
         }
@@ -151,7 +148,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     return acc;
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
-  const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres'];
+  const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
 
   const renderReceiptView = () => {
@@ -384,7 +381,3 @@ export default function WaiterDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
