@@ -39,7 +39,6 @@ export default function MenuEditorLayout({
         { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
         { href: '/admin/inventory', label: 'Inventario', icon: Package },
         { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-        { href: '/kitchen', label: 'Cocina', icon: LayoutDashboard },
       ];
   } else { // Waiter
       navItems = [

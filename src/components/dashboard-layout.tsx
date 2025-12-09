@@ -54,6 +54,19 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
 
   const unreadNotifications = notifications.filter(n => !n.read);
 
+  const checkIsActive = (itemHref: string) => {
+    // Exact match is always highest priority.
+    if (pathname === itemHref) return true;
+
+    // Avoids '/waiter' being active for '/waiter/offers'
+    if (pathname.startsWith(itemHref + '/')) return true;
+    
+    // Handle base routes like /admin
+    if (itemHref === '/admin' && pathname.startsWith('/admin/')) return true;
+
+    return false;
+  }
+
   if (isLoading) {
     return <div>Cargando...</div>;
   }
@@ -82,7 +95,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
+                  isActive={checkIsActive(item.href)}
                   tooltip={item.label}
                 >
                   <Link href={item.href}>
