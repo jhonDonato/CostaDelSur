@@ -12,13 +12,20 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarDays, PlusCircle, Trash2 } from 'lucide-react';
+import { CalendarDays, PlusCircle, Trash2, MessageSquare, FileDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { CalendarEvent } from '@/lib/types';
+import Papa from 'papaparse';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const eventSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -60,8 +67,34 @@ export default function CalendarPage() {
     .filter(event => new Date(event.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  const exportToWhatsApp = (event: CalendarEvent) => {
+    const message = `*Recordatorio de Evento:*\n\n*${event.title}*\n*Fecha:* ${format(event.date, "dd 'de' MMMM, yyyy", { locale: es })}\n*Hora:* ${event.time}`;
+    const whatsappUrl = `https://wa.me/51927325659?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const exportToCsv = (events: CalendarEvent[]) => {
+    const data = events.map(event => ({
+        'Titulo': event.title,
+        'Descripcion': event.description || '',
+        'Fecha': format(event.date, 'yyyy-MM-dd'),
+        'Hora': event.time,
+    }));
+    const csv = Papa.unparse(data, { quotes: true, header: true });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    const fileName = events.length > 1 ? `eventos-${Date.now()}.csv` : `evento-${events[0].id}.csv`;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "Exportación Exitosa", description: "Tus eventos han sido exportados a CSV." });
+  };
 
   return (
+    <TooltipProvider>
     <div className="space-y-6">
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -71,6 +104,10 @@ export default function CalendarPage() {
                 <p className="text-muted-foreground">Organiza tus actividades y recordatorios importantes.</p>
                 </div>
             </div>
+             <Button onClick={() => exportToCsv(state.calendarEvents)} disabled={state.calendarEvents.length === 0}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Exportar Todo a CSV
+            </Button>
         </div>
 
 
@@ -119,7 +156,7 @@ export default function CalendarPage() {
                                         <Button
                                         variant={"outline"}
                                         className={cn(
-                                            "pl-3 text-left font-normal",
+                                            "w-full justify-start pl-3 text-left font-normal",
                                             !field.value && "text-muted-foreground"
                                         )}
                                         >
@@ -189,9 +226,34 @@ export default function CalendarPage() {
                                             <p className="text-sm text-muted-foreground">{event.time} - {event.description}</p>
                                         </div>
                                     </div>
-                                     <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'REMOVE_EVENT', payload: { eventId: event.id }})}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button size="icon" variant="outline" onClick={() => exportToWhatsApp(event)}>
+                                                    <MessageSquare className="h-4 w-4"/>
+                                                    <span className="sr-only">Exportar a WhatsApp</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Exportar a WhatsApp</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button size="icon" variant="outline" onClick={() => exportToCsv([event])}>
+                                                    <FileDown className="h-4 w-4"/>
+                                                    <span className="sr-only">Exportar a CSV</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Exportar a CSV</p></TooltipContent>
+                                        </Tooltip>
+                                         <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_EVENT', payload: { eventId: event.id }})}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Eliminar Evento</p></TooltipContent>
+                                        </Tooltip>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -205,5 +267,6 @@ export default function CalendarPage() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
