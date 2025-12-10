@@ -134,7 +134,7 @@ export default function HomePage() {
             <div className="container mx-auto flex h-16 items-center justify-between px-4 text-white">
                 <div className="flex items-center gap-4 text-sm">
                     <Phone className="h-4 w-4" />
-                    <span>(+51) 927325659</span>
+                    <span>(123) 456-7890</span>
                 </div>
                 <Link href="/" className="flex flex-col items-center">
                     <Logo className="h-10 w-10 text-primary" />
@@ -339,7 +339,7 @@ export default function HomePage() {
        <footer className="bg-card py-8 border-t">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Marisquería Online. Todos los derechos reservados.</p>
-            <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (+51) 927325659</p>
+            <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (123) 456-7890</p>
         </div>
       </footer>
       
