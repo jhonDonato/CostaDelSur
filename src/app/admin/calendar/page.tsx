@@ -18,7 +18,7 @@ import { Calendar as CalendarIcon, PlusCircle, Calendar as CalendarComponentIcon
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import type { CalendarEvent } from '@/lib/types';
+import type { CalendarEvent, PublicHoliday } from '@/lib/types';
 import { publicHolidays } from '@/lib/data';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DayPicker, type DayProps } from 'react-day-picker';
@@ -60,7 +60,7 @@ export default function CalendarPage() {
     .filter(event => startOfDay(event.date) >= startOfDay(new Date()))
     .sort((a,b) => a.date.getTime() - b.date.getTime());
 
-  const allEvents = [...state.calendarEvents, ...publicHolidays];
+  const allEvents: (CalendarEvent | PublicHoliday)[] = [...state.calendarEvents, ...publicHolidays];
 
   const modifiers = {
     personal: state.calendarEvents.map(e => e.date),
@@ -74,7 +74,7 @@ export default function CalendarPage() {
   
   const DayWithTooltip = (props: DayProps) => {
     const { date, displayMonth } = props;
-    if (!date) return <DayPicker.Day {...props} />;
+    if (!date || !displayMonth) return <DayPicker.Day {...props} />;
 
     const eventsForDay = allEvents.filter(e => isSameDay(e.date, date));
     
@@ -121,9 +121,9 @@ export default function CalendarPage() {
                     <CardTitle>Calendario</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <CalendarComponent
+                    <DayPicker
                         mode="multiple"
-                        selected={[...state.calendarEvents.map(e => e.date), ...publicHolidays.map(h => h.date)]}
+                        selected={modifiers.personal.concat(modifiers.holiday)}
                         className="p-0"
                         locale={es}
                         modifiers={modifiers}
