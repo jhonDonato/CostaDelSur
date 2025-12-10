@@ -15,6 +15,7 @@ export type MenuItem = {
   image: string;
   stock: number;
   category: 'Entradas' | 'Platos Fuertes' | 'Platos a la Carta' | 'Bebidas' | 'Postres';
+  published?: boolean;
 };
 
 export type OrderItem = {

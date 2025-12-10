@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,9 +45,16 @@ export default function MenuEditorPage() {
   const form = useForm<z.infer<typeof menuFormSchema>>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
-      menuItems: state.menuItems.map(item => ({...item, published: item.stock > 0})),
+      menuItems: state.menuItems,
     },
   });
+  
+  useEffect(() => {
+    form.reset({
+      menuItems: state.menuItems.map(item => ({...item, published: item.stock > 0}))
+    });
+  }, [state.menuItems, form]);
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -55,13 +62,7 @@ export default function MenuEditorPage() {
   });
 
   const onSubmit = (data: z.infer<typeof menuFormSchema>) => {
-    data.menuItems.forEach(itemData => {
-        const payload = {
-            ...itemData,
-            stock: itemData.published ? (itemData.stock > 0 ? itemData.stock : 10) : 0
-        };
-        dispatch({ type: 'UPDATE_MENU_ITEM', payload });
-    })
+    dispatch({ type: 'UPDATE_FULL_MENU', payload: data.menuItems });
     toast({
       title: "Menú Actualizado",
       description: "Los cambios en el menú han sido guardados.",

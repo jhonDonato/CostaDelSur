@@ -27,7 +27,7 @@ type Action =
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
-  | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> & { id: string } }
+  | { type: 'UPDATE_FULL_MENU'; payload: MenuItem[] }
   | { type: 'UPDATE_OFFER'; payload: Offer }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
@@ -194,35 +194,26 @@ const createReducer = (toast: (options: { title: string, description: string, va
             ...state,
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
-    case 'UPDATE_MENU_ITEM': {
-        const { id, ...data } = action.payload;
-        if (!id) return state; // Should not happen with validation
+    case 'UPDATE_FULL_MENU': {
+        const updatedMenuItems = action.payload.map(itemData => {
+            const { id, ...data } = itemData;
+            const finalStock = data.published ? (data.stock > 0 ? data.stock : 10) : 0;
+            const isNew = id && id.startsWith('new-');
 
-        const isNew = id.startsWith('new-');
-        
-        if (isNew) {
-            const newItem: MenuItem = {
-                id: `item-${Date.now()}`, // Generate a permanent ID
-                name: data.name || '',
-                description: data.description || '',
-                price: data.price || 0,
-                category: data.category || 'Platos a la Carta',
-                stock: data.stock || 0,
-                image: data.image || '',
-            };
-            return {
-                ...state,
-                menuItems: [...state.menuItems, newItem],
-            };
-        } else {
-            // This is an update to an existing item
-            return {
-                ...state,
-                menuItems: state.menuItems.map(item =>
-                    item.id === id ? { ...item, ...data } : item
-                ),
-            };
-        }
+            if (isNew) {
+                return {
+                    ...data,
+                    id: `item-${Date.now()}-${Math.random()}`, // Create new permanent ID
+                    stock: finalStock,
+                };
+            }
+            return { ...itemData, stock: finalStock };
+        });
+
+        return {
+            ...state,
+            menuItems: updatedMenuItems,
+        };
     }
      case 'UPDATE_OFFER': {
         const { id, ...data } = action.payload;
