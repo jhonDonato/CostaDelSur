@@ -45,7 +45,6 @@ export default function MenuEditorLayout({
   } else { // Waiter
       navItems = [
         { href: '/waiter', label: 'Mesas', icon: LayoutDashboard },
-        { href: '/admin/calendar', label: 'Calendario', icon: CalendarDays },
         { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
         { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
       ];
