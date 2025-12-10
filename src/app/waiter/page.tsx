@@ -5,9 +5,9 @@ import { useState } from 'react';
 import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle, Soup, GlassWater, Cake, Pizza } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -66,16 +66,22 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         return [...prev, { menuItemId: item.id, quantity: 1 }];
     });
   };
-
-  const removeFromOrder = (itemId: string) => {
+  
+  const decreaseQuantity = (itemId: string) => {
       setCurrentOrderItems(prev => {
         const existing = prev.find(oi => oi.menuItemId === itemId);
         if (existing && existing.quantity > 1) {
             return prev.map(oi => oi.menuItemId === itemId ? { ...oi, quantity: oi.quantity - 1 } : oi);
         }
+        // If quantity is 1, it will be removed, same as remove from order
         return prev.filter(oi => oi.menuItemId !== itemId);
       });
   };
+
+  const removeFromOrder = (itemId: string) => {
+      setCurrentOrderItems(prev => prev.filter(oi => oi.menuItemId !== itemId));
+  };
+
 
   const submitOrder = () => {
     const time = parseInt(deliveryTime, 10);
@@ -101,6 +107,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     }
     if (!open) {
       setView('order'); // Reset view on close
+      setCurrentOrderItems([]);
     }
     onOpenChange(open);
   }
@@ -151,13 +158,13 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
-  const categoryColors: Record<MenuItem['category'], string> = {
-    'Entradas': 'bg-blue-50',
-    'Platos Fuertes': 'bg-red-50',
-    'Platos a la Carta': 'bg-yellow-50',
-    'Bebidas': 'bg-green-50',
-    'Postres': 'bg-purple-50',
-  };
+    const categoryConfig: Record<MenuItem['category'], { icon: React.ElementType, bg: string }> = {
+        'Entradas': { icon: Soup, bg: 'bg-blue-50' },
+        'Platos Fuertes': { icon: Utensils, bg: 'bg-red-50' },
+        'Platos a la Carta': { icon: Pizza, bg: 'bg-yellow-50' },
+        'Bebidas': { icon: GlassWater, bg: 'bg-green-50' },
+        'Postres': { icon: Cake, bg: 'bg-purple-50' },
+    };
 
 
   const renderReceiptView = () => {
@@ -267,97 +274,106 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-        <>
-            <div className="flex-1 overflow-y-auto pr-2 -mr-4">
-                 <Accordion type="multiple" defaultValue={orderCategories} className="w-full space-y-2">
-                    {orderCategories.map(category => (
-                        menuByCategory[category] && (
-                            <AccordionItem value={category} key={category} className={`border-none rounded-lg ${categoryColors[category] || 'bg-gray-50'}`}>
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-6 -ml-6">
+                 <Accordion type="multiple" defaultValue={['Entradas']} className="w-full space-y-2 px-6">
+                    {orderCategories.map(category => {
+                      if (!menuByCategory[category]) return null;
+                      const config = categoryConfig[category];
+                      const Icon = config.icon;
+                      return (
+                            <AccordionItem value={category} key={category} className={`border-none rounded-lg ${config.bg}`}>
                                 <AccordionTrigger className="font-semibold text-base py-3 px-4 hover:no-underline rounded-lg">
-                                  {category}
+                                  <div className="flex items-center gap-3">
+                                    <Icon className="h-5 w-5"/>
+                                    {category}
+                                  </div>
                                 </AccordionTrigger>
-                                <AccordionContent>
-                                    <div className="space-y-1 pt-2 px-4 pb-2">
+                                <AccordionContent className="p-0">
+                                    <div className="space-y-1 pt-2 px-2 pb-2">
                                         {menuByCategory[category].map(item => (
-                                        <div key={item.id} className="flex items-center justify-between p-2 rounded-md hover:bg-background/50">
+                                        <Card key={item.id} className="flex items-center justify-between p-2 rounded-md bg-background/50">
                                             <div>
-                                                <p className="font-medium">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
+                                                <p className="font-medium text-sm">{item.name}</p>
+                                                <p className="text-xs text-muted-foreground">S/.{item.price.toFixed(2)}</p>
                                             </div>
-                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)} className="bg-white">
+                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
                                                 <Plus className="h-4 w-4" />
                                             </Button>
-                                        </div>
+                                        </Card>
                                         ))}
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
                         )
-                    ))}
+                    })}
                 </Accordion>
             </div>
 
-            <div className="border-t pt-4 space-y-4">
+            <div className="mt-auto border-t -mx-6 px-6 pt-4 space-y-4 bg-background">
                 <div>
                     <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
                     {currentOrderItems.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Añada items al pedido.</p>
+                        <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
                         {currentOrderItems.map(orderItem => {
                             const menuItem = getMenuItem(orderItem.menuItemId);
                             if (!menuItem) return null;
                             return (
                             <div key={orderItem.menuItemId} className="flex items-center justify-between">
                                 <div>
-                                    <p className="font-medium">{menuItem.name}</p>
-                                    <p className="text-sm text-muted-foreground">S/.{menuItem.price.toFixed(2)} x {orderItem.quantity}</p>
+                                    <p className="font-medium text-sm">{menuItem.name}</p>
+                                    <p className="text-xs text-muted-foreground">S/.{menuItem.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Button size="icon" variant="ghost" onClick={() => removeFromOrder(orderItem.menuItemId)}>
-                                        {orderItem.quantity > 1 ? <Minus className="h-4 w-4" /> : <Trash2 className="h-4 w-4 text-destructive"/>}
+                                    <Button size="icon" variant="ghost" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
+                                       <MinusCircle className="h-5 w-5 text-muted-foreground"/>
                                     </Button>
-                                    <span className="w-6 text-center">{orderItem.quantity}</span>
+                                    <span className="w-6 text-center font-bold">{orderItem.quantity}</span>
                                     <Button size="icon" variant="ghost" onClick={() => addToOrder(menuItem)}>
-                                        <Plus className="h-4 w-4" />
+                                        <PlusCircle className="h-5 w-5 text-muted-foreground"/>
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
+                                        <Trash2 className="h-4 w-4"/>
                                     </Button>
                                 </div>
                             </div>
                             )
                         })}
-                        <div className="font-bold text-lg flex justify-between pt-2 border-t">
-                            <span>Total:</span>
-                            <span>S/.{newOrderTotal.toFixed(2)}</span>
-                        </div>
                         </div>
                     )}
                 </div>
+                 {currentOrderItems.length > 0 && (
+                    <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                        <span>Total:</span>
+                        <span>S/.{newOrderTotal.toFixed(2)}</span>
+                    </div>
+                )}
                 <div className="space-y-2">
                     <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
                     <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
                 </div>
-            </div>
-            <SheetFooter>
                 <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
                     <Send className="mr-2 h-4 w-4" />
                     Enviar Pedido a Cocina
                 </Button>
-            </SheetFooter>
-        </>
+            </div>
+        </div>
     )
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col">
-        <SheetHeader>
+      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-0">
+        <SheetHeader className="p-6 pb-2">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
             {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
           </SheetDescription>
         </SheetHeader>
         
-        {view === 'receipt' ? renderReceiptView() : renderOrderView()}
+        {view === 'receipt' ? <div className="p-6 pt-0">{renderReceiptView()}</div> : renderOrderView()}
         
       </SheetContent>
     </Sheet>
@@ -422,3 +438,5 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
