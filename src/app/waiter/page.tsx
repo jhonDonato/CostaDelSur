@@ -17,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -157,15 +158,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
-    const categoryConfig: Record<MenuItem['category'], { icon: React.ElementType, bg: string }> = {
-        'Entradas': { icon: Soup, bg: 'bg-blue-50' },
-        'Platos Fuertes': { icon: Utensils, bg: 'bg-red-50' },
-        'Platos a la Carta': { icon: Pizza, bg: 'bg-yellow-50' },
-        'Bebidas': { icon: GlassWater, bg: 'bg-green-50' },
-        'Postres': { icon: Cake, bg: 'bg-purple-50' },
-    };
-
-
   const renderReceiptView = () => {
     const orderToDisplay = existingOrder;
     if (!orderToDisplay) return null;
@@ -273,63 +265,56 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto -mr-6 pr-6 space-y-2">
-                 <Accordion type="multiple" defaultValue={['Entradas']} className="w-full">
-                    {orderCategories.map(category => {
-                      if (!menuByCategory[category]) return null;
-                      const config = categoryConfig[category];
-                      const Icon = config.icon;
-                      return (
-                            <AccordionItem value={category} key={category} className={`border-none rounded-lg ${config.bg}`}>
-                                <AccordionTrigger className="font-semibold text-base py-3 px-4 hover:no-underline rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <Icon className="h-5 w-5"/>
-                                    {category}
-                                  </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="p-0">
-                                    <div className="space-y-1 pt-2 px-2 pb-2">
-                                        {menuByCategory[category].map(item => (
-                                        <Card key={item.id} className="flex items-center justify-between p-2 rounded-md bg-background/50">
-                                            <div>
-                                                <p className="font-medium text-sm">{item.name}</p>
-                                                <p className="text-xs text-muted-foreground">S/.{item.price.toFixed(2)}</p>
-                                            </div>
-                                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
-                                        </Card>
-                                        ))}
+      <ScrollArea className="h-full pr-6 -mr-6">
+        <div className="flex flex-col justify-between h-full">
+            <div>
+                {orderCategories.map(category => {
+                    if (!menuByCategory[category]) return null;
+                    return (
+                        <div key={category} className="mb-4">
+                            <h3 className="font-semibold text-lg mb-2">{category}</h3>
+                            <div className="space-y-2">
+                            {menuByCategory[category].map(item => (
+                                <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg">
+                                    <div>
+                                        <p className="font-medium">{item.name}</p>
+                                        <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
                                     </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        )
-                    })}
-                </Accordion>
+                                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </Card>
+                            ))}
+                            </div>
+                        </div>
+                    )
+                })}
             </div>
 
-            <div className="mt-auto border-t -mx-6 px-6 pt-4 space-y-4 bg-background">
+            <div className="mt-auto border-t -mx-6 px-6 pt-4 space-y-4 bg-background sticky bottom-0">
                 <div>
                     <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
                     {currentOrderItems.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
                     ) : (
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
                         {currentOrderItems.map(orderItem => {
                             const menuItem = getMenuItem(orderItem.menuItemId);
                             if (!menuItem) return null;
                             return (
                             <div key={orderItem.menuItemId} className="flex items-center justify-between">
                                 <div>
-                                    <p className="font-medium text-sm">{menuItem.name} x {orderItem.quantity}</p>
-                                    <p className="text-xs text-muted-foreground">S/.{menuItem.price.toFixed(2)}</p>
+                                    <p className="font-medium text-sm">{menuItem.name}</p>
+                                    <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
+                                <div className="flex items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}>
+                                       <Plus className="h-4 w-4"/>
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
                                        <Minus className="h-4 w-4"/>
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="h-4 w-4 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
                                         <Trash2 className="h-4 w-4"/>
                                     </Button>
                                 </div>
@@ -355,6 +340,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 </Button>
             </div>
         </div>
+      </ScrollArea>
     )
   }
 
@@ -433,7 +419,5 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
-
-    
 
     
