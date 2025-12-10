@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -267,15 +267,14 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-      <div className="flex h-full flex-col">
-        <ScrollArea className="flex-1">
-          <div className="px-6 pt-2 pb-6">
+      <ScrollArea className="h-full">
+        <div className="flex h-full flex-col px-6 pt-2 pb-6">
             <Accordion type="multiple" className="w-full">
               {orderCategories.map(category => {
                 if (!menuByCategory[category]) return null;
                 return (
                   <AccordionItem value={category} key={category}>
-                    <AccordionTrigger className="hover:bg-accent">
+                    <AccordionTrigger className="hover:bg-primary/10 hover:no-underline">
                       {category}
                     </AccordionTrigger>
                     <AccordionContent>
@@ -338,8 +337,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 </Button>
               </div>
           </div>
-        </ScrollArea>
-      </div>
+      </ScrollArea>
     )
   }
 
