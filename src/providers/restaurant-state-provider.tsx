@@ -27,8 +27,8 @@ type Action =
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
-  | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> }
-  | { type: 'UPDATE_OFFER'; payload: Offer }
+  | { type: 'UPDATE_MENU_ITEM'; payload: { menuItems: Partial<MenuItem>[] } }
+  | { type: 'UPDATE_OFFER'; payload: { offers: Offer[] } }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
   | { type: 'ADD_NOTE', payload: Note }
@@ -195,59 +195,54 @@ const createReducer = (toast: (options: { title: string, description: string, va
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
     case 'UPDATE_MENU_ITEM': {
-      const { id, ...data } = action.payload;
-      const finalStock = data.published ? (data.stock !== undefined && data.stock > 0 ? data.stock : 10) : 0;
-      
-      const isNew = !id || id.startsWith('new-');
+      const updatedMenuItems = action.payload.menuItems.map(itemData => {
+        const { id, ...data } = itemData;
+        const finalStock = data.published ? (data.stock !== undefined && data.stock > 0 ? data.stock : 10) : 0;
+        const isNew = !id || id.startsWith('new-');
 
-      if (isNew) {
-        const newItem: MenuItem = {
-          id: `item-${Date.now()}`,
-          name: data.name || '',
-          description: data.description || '',
-          price: data.price || 0,
-          category: data.category || 'Platos a la Carta',
-          image: data.image || '',
-          stock: finalStock,
-          published: data.published,
-        };
-        return {
-          ...state,
-          menuItems: [...state.menuItems, newItem],
-        };
-      } else {
-        return {
-          ...state,
-          menuItems: state.menuItems.map(item =>
-            item.id === id ? { ...item, ...data, stock: finalStock } : item
-          ),
-        };
-      }
+        if (isNew) {
+          return {
+            id: `item-${Date.now()}-${Math.random()}`,
+            name: data.name || '',
+            description: data.description || '',
+            price: data.price || 0,
+            category: data.category || 'Platos a la Carta',
+            image: data.image || '',
+            stock: finalStock,
+            published: data.published,
+          };
+        }
+        const existingItem = state.menuItems.find(item => item.id === id);
+        return { ...existingItem, ...data, stock: finalStock, id: existingItem!.id };
+      });
+
+      return {
+        ...state,
+        menuItems: updatedMenuItems,
+      };
     }
      case 'UPDATE_OFFER': {
-        const { id, ...data } = action.payload;
-        const isNew = !id || id.startsWith('new-offer-');
-        
-        if (isNew) {
-           const newOffer: Offer = {
-            id: `offer-${Date.now()}`,
-            title: data.title,
-            description: data.description,
-            image: data.image,
-            published: data.published
-           };
-           return {
-             ...state,
-             offers: [...state.offers, newOffer]
-           };
-        } else {
-            return {
-                ...state,
-                offers: state.offers.map(offer =>
-                    offer.id === id ? { ...offer, ...data } : offer
-                ),
-            };
-        }
+        const updatedOffers = action.payload.offers.map(offerData => {
+            const { id, ...data } = offerData;
+            const isNew = !id || id.startsWith('new-offer-');
+
+            if(isNew) {
+                return {
+                    id: `offer-${Date.now()}-${Math.random()}`,
+                    title: data.title,
+                    description: data.description,
+                    image: data.image,
+                    published: data.published
+                };
+            }
+            const existingOffer = state.offers.find(o => o.id === id);
+            return { ...existingOffer, ...data, id: existingOffer!.id };
+        });
+
+        return {
+            ...state,
+            offers: updatedOffers,
+        };
     }
     case 'SET_ORDER_TIMER':
         return {

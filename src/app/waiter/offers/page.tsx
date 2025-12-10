@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useEffect } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAppState } from '@/hooks/use-app-state';
@@ -39,21 +39,22 @@ export default function OffersPage() {
     },
   });
 
+  useEffect(() => {
+    form.reset({ offers: state.offers });
+  }, [state.offers, form]);
+
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "offers",
   });
 
   const onSubmit = (data: z.infer<typeof offersFormSchema>) => {
-    data.offers.forEach(offerData => {
-        const offerPayload = { ...offerData, id: offerData.id || `new-offer-${Date.now()}` };
-        dispatch({ type: 'UPDATE_OFFER', payload: offerPayload as Offer });
-    });
+    dispatch({ type: 'UPDATE_OFFER', payload: { offers: data.offers } });
     toast({
       title: "Ofertas Actualizadas",
       description: "Los cambios en las ofertas han sido guardados.",
     });
-    form.reset({ offers: state.offers });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {

@@ -51,8 +51,6 @@ export default function MenuEditorPage() {
   });
   
   useEffect(() => {
-    // This effect synchronizes the form with the global state, which is crucial
-    // after the state is updated by the dispatch action.
     form.reset({
       menuItems: state.menuItems.map(item => ({
         ...item,
@@ -68,9 +66,7 @@ export default function MenuEditorPage() {
   });
 
   const onSubmit = (data: z.infer<typeof menuFormSchema>) => {
-    data.menuItems.forEach(itemData => {
-        dispatch({ type: 'UPDATE_MENU_ITEM', payload: itemData });
-    });
+    dispatch({ type: 'UPDATE_MENU_ITEM', payload: { menuItems: data.menuItems } });
     toast({
       title: "Menú Actualizado",
       description: "Los cambios en el menú han sido guardados.",
