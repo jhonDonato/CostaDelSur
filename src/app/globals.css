@@ -53,8 +53,8 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 142.1 76.2% 36.3%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
@@ -112,8 +112,7 @@
     color: hsl(210 40% 98%) !important;
   }
    .reservation-calendar .rdp-day_today {
-    background-color: hsl(142.1 76.2% 36.3% / 0.2) !important;
-    color: hsl(142.1 76.2% 36.3%) !important;
+    border: 1px solid hsl(142.1 76.2% 36.3%) !important;
   }
 
   .admin-calendar .rdp-day_selected {
@@ -121,7 +120,6 @@
       color: hsl(var(--primary-foreground)) !important;
   }
   .admin-calendar .rdp-day_today {
-      background-color: hsl(var(--primary) / 0.2) !important;
-      color: hsl(var(--primary)) !important;
+      border: 1px solid hsl(var(--primary)) !important;
   }
 }
