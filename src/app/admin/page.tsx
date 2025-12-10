@@ -5,7 +5,7 @@ import { BarChart, LineChart, PieChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart as RechartsBarChart, Line, LineChart as RechartsLineChart, Pie, PieChart as RechartsPieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Cell } from 'recharts';
+import { Bar, BarChart as RechartsBarChart, Line, LineChart as RechartsLineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { useAppState } from '@/hooks/use-app-state';
 
 const salesData = [
@@ -27,8 +27,6 @@ const profitData = [
     { month: 'Junio', profit: 25000 },
 ];
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
-
 export default function AdminDashboardPage() {
   const { state } = useAppState();
   const { menuItems, orders } = state;
@@ -44,18 +42,6 @@ export default function AdminDashboardPage() {
         const totalSold = orders.reduce((sum, order) => sum + (order.items.find(i => i.menuItemId === item.id)?.quantity || 0), 0);
         return { ...item, totalSold };
     });
-
-  const categoryDistribution = menuItems.reduce((acc, item) => {
-    const totalSold = orders.reduce((sum, order) => sum + (order.items.find(i => i.menuItemId === item.id)?.quantity || 0), 0);
-    if (!acc[item.category]) {
-      acc[item.category] = { name: item.category, value: 0 };
-    }
-    acc[item.category].value += totalSold;
-    return acc;
-  }, {} as Record<string, {name: string, value: number}>);
-
-  const categoryData = Object.values(categoryDistribution).filter(c => c.value > 0);
-
 
   return (
     <div className="space-y-6">
@@ -137,8 +123,8 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
           <CardHeader>
             <CardTitle>Top 5 Platos Más Vendidos</CardTitle>
             <CardDescription>Los platos más populares entre los clientes.</CardDescription>
@@ -162,27 +148,6 @@ export default function AdminDashboardPage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-        <Card>
-           <CardHeader>
-            <CardTitle>Ventas por Categoría</CardTitle>
-            <CardDescription>Distribución de las ventas por categoría de platos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                        <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} label>
-                             {categoryData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip content={<ChartTooltipContent />} />
-                        <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{paddingLeft: '16px', paddingRight: '16px'}}/>
-                    </RechartsPieChart>
-                </ResponsiveContainer>
-            </ChartContainer>
           </CardContent>
         </Card>
       </div>
