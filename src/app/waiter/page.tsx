@@ -17,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -166,12 +167,12 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const finalTotal = total + igv;
 
     return (
-        <div className="flex-1 flex flex-col justify-between">
+        <div className="flex-1 flex flex-col justify-between p-6">
             <div className="p-4 border rounded-lg">
-                <SheetHeader className="text-center mb-4">
-                    <SheetTitle>Boleta de Venta</SheetTitle>
-                    <SheetDescription>Marisquería Online</SheetDescription>
-                </SheetHeader>
+                <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold">Boleta de Venta</h3>
+                    <p className="text-sm text-muted-foreground">Marisquería Online</p>
+                </div>
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between"><span>Mesa:</span><span>{orderToDisplay.tableId}</span></div>
                     <div className="flex justify-between"><span>Fecha:</span><span>{new Date(orderToDisplay.createdAt).toLocaleDateString()}</span></div>
@@ -194,16 +195,16 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                     </div>
                 </div>
             </div>
-            <SheetFooter className="mt-4 gap-2">
-                <Button onClick={() => toast({title: "Función no implementada", description: "La impresión no está disponible en esta demo."})} variant="outline" className="w-full">
+            <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button onClick={() => toast({title: "Función no implementada", description: "La impresión no está disponible en esta demo."})} variant="outline">
                     <Printer className="mr-2 h-4 w-4" />
                     Imprimir
                 </Button>
-                <Button onClick={handlePayAndClose} className="w-full">
+                <Button onClick={handlePayAndClose}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Marcar como Pagado y Liberar
+                    Marcar y Liberar
                 </Button>
-            </SheetFooter>
+            </div>
         </div>
     )
   }
@@ -215,7 +216,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         const isOrderDelivered = existingOrder.status === 'delivered';
 
         return (
-            <div className="flex-1 flex flex-col justify-between">
+            <div className="flex-1 flex flex-col justify-between p-6">
                 <div>
                     <h3 className="font-semibold mb-2">Pedido Actual</h3>
                     <div className="flex justify-between items-center">
@@ -227,7 +228,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                         </Badge>
                         <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(existingOrder.createdAt, {locale: es})}</span>
                     </div>
-                    <div className="space-y-2 mb-4">
+                    <ScrollArea className="h-64">
+                    <div className="space-y-2 mb-4 pr-4">
                         {existingOrder.items.map(item => {
                             const menuItem = getMenuItem(item.menuItemId);
                             return (
@@ -238,12 +240,13 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             );
                         })}
                     </div>
-                    <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                    </ScrollArea>
+                    <div className="font-bold text-lg flex justify-between pt-2 border-t mt-2">
                         <span>Total:</span>
                         <span>S/.{orderTotal.toFixed(2)}</span>
                     </div>
                 </div>
-                <SheetFooter>
+                <div>
                     {isOrderReady && (
                         <Button onClick={handleConfirmDelivery} className="w-full bg-green-600 hover:bg-green-700">
                             <Truck className="mr-2 h-4 w-4" />
@@ -256,7 +259,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             Desocupar Mesa y Generar Boleta
                         </Button>
                     )}
-                </SheetFooter>
+                </div>
             </div>
         )
     }
@@ -264,87 +267,89 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-        <div className="flex flex-col justify-between h-full">
-            <ScrollArea className="flex-grow pr-6 -mr-6">
-                {orderCategories.map(category => {
-                    if (!menuByCategory[category]) return null;
-                    return (
-                        <div key={category} className="mb-4">
-                            <h3 className="font-semibold text-lg mb-2">{category}</h3>
-                            <div className="space-y-2">
-                            {menuByCategory[category].map(item => (
-                                <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg">
-                                    <div>
-                                        <p className="font-medium">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
-                                    </div>
-                                    <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </Card>
-                            ))}
+      <div className="flex h-full flex-col">
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full px-6">
+            <Accordion type="multiple" className="w-full">
+              {orderCategories.map(category => {
+                if (!menuByCategory[category]) return null;
+                return (
+                  <AccordionItem value={category} key={category}>
+                    <AccordionTrigger>{category}</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {menuByCategory[category].map(item => (
+                          <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg">
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+                              <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
                             </div>
-                        </div>
-                    )
-                })}
-            </ScrollArea>
-            
-            <div className="mt-auto border-t -mx-6 px-6 pt-4 space-y-4 bg-background sticky bottom-0">
-                <ScrollArea className="max-h-48">
-                    <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
-                    {currentOrderItems.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
-                    ) : (
-                        <div className="space-y-2">
-                        {currentOrderItems.map(orderItem => {
-                            const menuItem = getMenuItem(orderItem.menuItemId);
-                            if (!menuItem) return null;
-                            return (
-                            <div key={orderItem.menuItemId} className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium text-sm">{menuItem.name}</p>
-                                    <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}>
-                                       <Plus className="h-4 w-4"/>
-                                    </Button>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
-                                       <Minus className="h-4 w-4"/>
-                                    </Button>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
-                                        <Trash2 className="h-4 w-4"/>
-                                    </Button>
-                                </div>
-                            </div>
-                            )
-                        })}
-                        </div>
-                    )}
-                </ScrollArea>
-                 {currentOrderItems.length > 0 && (
-                    <div className="font-bold text-lg flex justify-between pt-2 border-t">
-                        <span>Total:</span>
-                        <span>S/.{newOrderTotal.toFixed(2)}</span>
-                    </div>
-                )}
-                <div className="space-y-2">
-                    <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
-                    <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
-                </div>
-                <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
-                    <Send className="mr-2 h-4 w-4" />
-                    Enviar Pedido a Cocina
-                </Button>
-            </div>
+                            <Button size="icon" variant="outline" onClick={() => addToOrder(item)}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </Card>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </ScrollArea>
         </div>
+        
+        <div className="mt-auto border-t bg-background p-6">
+          <div className="space-y-4">
+            <h3 className="font-semibold">Resumen del Pedido</h3>
+            {currentOrderItems.length > 0 ? (
+              <>
+                <ScrollArea className="max-h-32">
+                  <div className="space-y-2 pr-4">
+                    {currentOrderItems.map(orderItem => {
+                      const menuItem = getMenuItem(orderItem.menuItemId);
+                      if (!menuItem) return null;
+                      return (
+                        <div key={orderItem.menuItemId} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{menuItem.name}</p>
+                            <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </ScrollArea>
+                <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                  <span>Total:</span>
+                  <span>S/.{newOrderTotal.toFixed(2)}</span>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
+            )}
+             <div className="space-y-2">
+              <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
+              <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
+            </div>
+            <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
+              <Send className="mr-2 h-4 w-4" />
+              Enviar Pedido a Cocina
+            </Button>
+          </div>
+        </div>
+      </div>
     )
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-6">
-        <SheetHeader>
+      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-0">
+        <SheetHeader className="p-6 pb-2">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
             {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
@@ -416,5 +421,7 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
 
     
