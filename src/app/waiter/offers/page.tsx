@@ -46,12 +46,14 @@ export default function OffersPage() {
 
   const onSubmit = (data: z.infer<typeof offersFormSchema>) => {
     data.offers.forEach(offerData => {
-        dispatch({ type: 'UPDATE_OFFER', payload: offerData as Offer });
-    })
+        const offerPayload = { ...offerData, id: offerData.id || `new-offer-${Date.now()}` };
+        dispatch({ type: 'UPDATE_OFFER', payload: offerPayload as Offer });
+    });
     toast({
       title: "Ofertas Actualizadas",
       description: "Los cambios en las ofertas han sido guardados.",
     });
+    form.reset({ offers: state.offers });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {

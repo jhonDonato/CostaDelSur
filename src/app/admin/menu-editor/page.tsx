@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -50,8 +51,13 @@ export default function MenuEditorPage() {
   });
   
   useEffect(() => {
+    // This effect synchronizes the form with the global state, which is crucial
+    // after the state is updated by the dispatch action.
     form.reset({
-      menuItems: state.menuItems.map(item => ({...item, published: item.stock > 0}))
+      menuItems: state.menuItems.map(item => ({
+        ...item,
+        published: item.stock !== undefined ? item.stock > 0 : true
+      }))
     });
   }, [state.menuItems, form]);
 
@@ -62,7 +68,9 @@ export default function MenuEditorPage() {
   });
 
   const onSubmit = (data: z.infer<typeof menuFormSchema>) => {
-    dispatch({ type: 'UPDATE_FULL_MENU', payload: data.menuItems });
+    data.menuItems.forEach(itemData => {
+        dispatch({ type: 'UPDATE_MENU_ITEM', payload: itemData });
+    });
     toast({
       title: "Menú Actualizado",
       description: "Los cambios en el menú han sido guardados.",
