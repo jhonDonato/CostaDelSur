@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useForm, useFieldArray, useEffect } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAppState } from '@/hooks/use-app-state';
@@ -55,6 +56,7 @@ export default function OffersPage() {
       title: "Ofertas Actualizadas",
       description: "Los cambios en las ofertas han sido guardados.",
     });
+    form.reset({ offers: data.offers });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
