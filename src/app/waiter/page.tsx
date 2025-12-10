@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAppState } from '@/hooks/use-app-state';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -342,7 +342,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 return (
                   <AccordionItem value={category} key={category} className={cn('mb-2 rounded-lg border-none transition-colors', { 'bg-primary/10': isActive })}>
                     <AccordionTrigger 
-                      className={cn("hover:no-underline rounded-lg px-4 py-3", isActive ? 'bg-primary/10' : 'hover:bg-accent hover:text-accent-foreground')}
+                      className={cn("hover:no-underline rounded-lg px-4 py-3 hover:bg-accent hover:text-accent-foreground", isActive ? 'bg-primary/10' : '')}
                     >
                       {category}
                     </AccordionTrigger>
@@ -523,5 +523,7 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
 
     
