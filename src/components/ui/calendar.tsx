@@ -23,15 +23,15 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        caption: "flex justify-between items-center px-1 pt-1 relative",
         caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
+        nav: "flex items-center gap-1",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
+        nav_button_previous: "",
+        nav_button_next: "",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
@@ -43,8 +43,8 @@ function Calendar({
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
         ),
         day_selected:
-          "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-        day_today: "bg-muted text-muted-foreground",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
         day_outside: "text-muted-foreground opacity-50",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
