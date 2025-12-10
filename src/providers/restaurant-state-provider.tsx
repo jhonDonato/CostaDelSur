@@ -31,6 +31,7 @@ type Action =
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
   | { type: 'ADD_NOTE', payload: Note }
+  | { type: 'REMOVE_NOTE', payload: { noteId: string } }
   | { type: 'ADD_EVENT', payload: CalendarEvent }
   | { type: 'REMOVE_EVENT', payload: { eventId: string } };
 
@@ -211,6 +212,11 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
         return {
             ...state,
             notes: [action.payload, ...state.notes]
+        };
+    case 'REMOVE_NOTE':
+        return {
+            ...state,
+            notes: state.notes.filter(n => n.id !== action.payload.noteId),
         };
     case 'ADD_EVENT':
         return {

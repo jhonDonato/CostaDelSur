@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,11 +12,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Notebook, PlusCircle, MessageSquare, FileDown } from 'lucide-react';
+import { Notebook, PlusCircle, MessageSquare, FileDown, Trash2 } from 'lucide-react';
 import type { Note } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Papa from 'papaparse';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const noteSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -25,6 +37,7 @@ const noteSchema = z.object({
 export default function NotesPage() {
   const { state, dispatch } = useAppState();
   const { toast } = useToast();
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof noteSchema>>({
     resolver: zodResolver(noteSchema),
@@ -60,7 +73,7 @@ export default function NotesPage() {
         'Contenido': note.content,
         'Fecha de Creacion': format(note.createdAt, 'yyyy-MM-dd HH:mm'),
     }));
-    const csv = Papa.unparse(data);
+    const csv = Papa.unparse(data, { quotes: true, header: true });
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -72,9 +85,22 @@ export default function NotesPage() {
     document.body.removeChild(link);
     toast({ title: "Exportación Exitosa", description: "Tus notas han sido exportadas a CSV." });
   };
+  
+  const confirmDelete = () => {
+    if (noteToDelete) {
+        dispatch({type: 'REMOVE_NOTE', payload: {noteId: noteToDelete}});
+        toast({
+            title: 'Nota eliminada',
+            description: 'La nota ha sido eliminada correctamente.',
+            variant: 'destructive'
+        });
+        setNoteToDelete(null);
+    }
+  }
 
 
   return (
+    <TooltipProvider>
     <div className="space-y-6">
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -148,14 +174,33 @@ export default function NotesPage() {
                                         </CardDescription>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button size="icon" variant="outline" onClick={() => exportToWhatsApp(note)}>
-                                            <MessageSquare className="h-4 w-4"/>
-                                            <span className="sr-only">Exportar a WhatsApp</span>
-                                        </Button>
-                                        <Button size="icon" variant="outline" onClick={() => exportToCsv([note])}>
-                                            <FileDown className="h-4 w-4"/>
-                                            <span className="sr-only">Exportar a CSV</span>
-                                        </Button>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button size="icon" variant="outline" onClick={() => exportToWhatsApp(note)}>
+                                                    <MessageSquare className="h-4 w-4"/>
+                                                    <span className="sr-only">Exportar a WhatsApp</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Exportar a WhatsApp</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button size="icon" variant="outline" onClick={() => exportToCsv([note])}>
+                                                    <FileDown className="h-4 w-4"/>
+                                                    <span className="sr-only">Exportar a CSV</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Exportar a CSV</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button size="icon" variant="destructive" onClick={() => setNoteToDelete(note.id)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                    <span className="sr-only">Eliminar Nota</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Eliminar Nota</p></TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -172,6 +217,21 @@ export default function NotesPage() {
             )}
         </div>
       </div>
+      <AlertDialog open={noteToDelete !== null} onOpenChange={(open) => !open && setNoteToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+                Esta acción no se puede deshacer. Esto eliminará permanentemente la nota.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Eliminar</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+    </TooltipProvider>
   );
 }
