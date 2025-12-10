@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import type { CalendarEvent } from '@/lib/types';
 import { publicHolidays } from '@/lib/data';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { DayProps } from 'react-day-picker';
+import { DayPicker, type DayProps } from 'react-day-picker';
 
 const eventSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -74,7 +74,7 @@ export default function CalendarPage() {
   
   const DayWithTooltip = (props: DayProps) => {
     const { date, displayMonth } = props;
-    if (!date) return <div />;
+    if (!date) return <DayPicker.Day {...props} />;
 
     const eventsForDay = allEvents.filter(e => isSameDay(e.date, date));
     
@@ -83,14 +83,7 @@ export default function CalendarPage() {
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center rounded-md",
-                  date.getMonth() !== displayMonth.getMonth() && "text-muted-foreground opacity-50"
-                )}
-              >
-                {format(date, 'd')}
-              </div>
+                <DayPicker.Day {...props} />
             </TooltipTrigger>
             <TooltipContent>
               <ul className="list-disc pl-4">
@@ -102,16 +95,7 @@ export default function CalendarPage() {
       );
     }
 
-    return (
-      <div
-        className={cn(
-            "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center rounded-md",
-            date.getMonth() !== displayMonth.getMonth() && "text-muted-foreground opacity-50"
-        )}
-        >
-        {format(date, 'd')}
-      </div>
-    );
+    return <DayPicker.Day {...props} />;
   };
 
 
