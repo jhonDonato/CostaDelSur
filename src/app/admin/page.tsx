@@ -170,16 +170,16 @@ export default function AdminDashboardPage() {
             <CardDescription>Distribución de las ventas por categoría de platos.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-64">
+            <ChartContainer config={{}} className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
-                        <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                        <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} label>
                              {categoryData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
                         <Tooltip content={<ChartTooltipContent />} />
-                        <Legend />
+                        <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{paddingLeft: "16px"}}/>
                     </RechartsPieChart>
                 </ResponsiveContainer>
             </ChartContainer>
