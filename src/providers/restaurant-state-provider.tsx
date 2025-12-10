@@ -24,9 +24,7 @@ type Action =
   | { type: 'CALL_WAITER'; payload: { tableId: number } }
   | { type: 'UPDATE_TABLE_STATUS'; payload: { tableId: number; status: TableStatus, orderId?: string | null } }
   | { type: 'CREATE_ORDER'; payload: { tableId: number; items: OrderItem[]; estimatedDeliveryTime: number } }
-  | { type: 'ADD_ITEMS_TO_ORDER'; payload: { orderId: string; items: OrderItem[] } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
-  | { type: 'MARK_EXTRA_AS_DELIVERED', payload: { orderId: string, menuItemId: string } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
   | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> & { id: string } }
@@ -81,7 +79,7 @@ const createReducer = (toast: (options: { title: string, description: string, va
       const newOrder: Order = {
         id: `order-${Date.now()}`,
         tableId: action.payload.tableId,
-        items: action.payload.items.map(item => ({...item, status: 'original'})),
+        items: action.payload.items,
         status: 'pending',
         createdAt: Date.now(),
         lastUpdatedAt: Date.now(),
@@ -90,31 +88,20 @@ const createReducer = (toast: (options: { title: string, description: string, va
       const newTables = state.tables.map(table =>
           table.id === action.payload.tableId ? { ...table, status: 'occupied', orderId: newOrder.id } : table
       );
+      
+      const newMenuItems = state.menuItems.map(menuItem => {
+        const orderItem = action.payload.items.find(i => i.menuItemId === menuItem.id);
+        if (orderItem) {
+          return { ...menuItem, stock: menuItem.stock - orderItem.quantity };
+        }
+        return menuItem;
+      });
 
       return {
         ...state,
         orders: [newOrder, ...state.orders],
-        tables: newTables
-      };
-    }
-    case 'ADD_ITEMS_TO_ORDER': {
-      return {
-        ...state,
-        orders: state.orders.map(order => {
-          if (order.id === action.payload.orderId) {
-            const newItems = [...order.items];
-            action.payload.items.forEach(newItem => {
-              const existingItemIndex = newItems.findIndex(i => i.menuItemId === newItem.menuItemId && i.status === 'extra' && !i.delivered);
-              if (existingItemIndex > -1) {
-                newItems[existingItemIndex].quantity += newItem.quantity;
-              } else {
-                newItems.push({ ...newItem, status: 'extra', delivered: false });
-              }
-            });
-            return { ...order, items: newItems, lastUpdatedAt: Date.now() };
-          }
-          return order;
-        }),
+        tables: newTables,
+        menuItems: newMenuItems,
       };
     }
     case 'UPDATE_ORDER_STATUS': {
@@ -154,24 +141,6 @@ const createReducer = (toast: (options: { title: string, description: string, va
         orders: updatedOrders,
         notifications: newNotifications,
       };
-    }
-    case 'MARK_EXTRA_AS_DELIVERED': {
-        return {
-            ...state,
-            orders: state.orders.map(order => {
-                if (order.id === action.payload.orderId) {
-                    return {
-                        ...order,
-                        items: order.items.map(item => 
-                            (item.menuItemId === action.payload.menuItemId && item.status === 'extra') 
-                            ? { ...item, delivered: true } 
-                            : item
-                        ),
-                    };
-                }
-                return order;
-            })
-        }
     }
     case 'UPDATE_STOCK': {
         let newNotifications = state.notifications;

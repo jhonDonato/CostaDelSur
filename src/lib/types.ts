@@ -20,8 +20,6 @@ export type MenuItem = {
 export type OrderItem = {
   menuItemId: string;
   quantity: number;
-  status: 'original' | 'extra';
-  delivered?: boolean; // Only for 'extra' items
 };
 
 export type Order = {

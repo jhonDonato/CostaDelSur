@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle, Check } from 'lucide-react';
+import { Plus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem, Order } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -52,25 +52,10 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const [deliveryTime, setDeliveryTime] = useState('15');
   const [view, setView] = useState<'order' | 'receipt'>('order');
   const [activeCategory, setActiveCategory] = useState<string | undefined>();
-  const [editTimer, setEditTimer] = useState(0);
-
+  
   const existingOrder = getOrderForTable(tableId);
-  const isEditable = existingOrder && (Date.now() - existingOrder.createdAt) < 60000;
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    if (isEditable && existingOrder) {
-      const endTime = existingOrder.createdAt + 60000;
-      interval = setInterval(() => {
-        const timeLeft = Math.round((endTime - Date.now()) / 1000);
-        setEditTimer(timeLeft > 0 ? timeLeft : 0);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isEditable, existingOrder]);
-
-
-  const addToOrder = (item: MenuItem, isExtra: boolean = false) => {
+  const addToOrder = (item: MenuItem) => {
     if (item.stock === 0) {
         toast({ title: "Agotado", description: `${item.name} no está disponible.`, variant: "destructive" });
         return;
@@ -80,7 +65,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         if (existing) {
             return prev.map(oi => oi.menuItemId === item.id ? { ...oi, quantity: oi.quantity + 1 } : oi);
         }
-        return [...prev, { menuItemId: item.id, quantity: 1, status: isExtra ? 'extra' : 'original' }];
+        return [...prev, { menuItemId: item.id, quantity: 1 }];
     });
   };
   
@@ -112,20 +97,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
     dispatch({type: 'CREATE_ORDER', payload: { tableId, items: currentOrderItems, estimatedDeliveryTime: time }});
     toast({ title: "Pedido Enviado", description: `El pedido para la mesa ${tableId} ha sido enviado a la cocina.`});
-    setCurrentOrderItems([]);
-    setDeliveryTime('15');
+    onOpenChange(false);
   };
-
-  const updateOrder = () => {
-    if (!existingOrder || currentOrderItems.length === 0) {
-        toast({ title: "Sin cambios", description: "No hay nuevos items para agregar.", variant: "destructive"});
-        return;
-    }
-    dispatch({type: 'ADD_ITEMS_TO_ORDER', payload: { orderId: existingOrder.id, items: currentOrderItems }});
-    toast({ title: "Pedido Actualizado", description: `Se agregaron nuevos items al pedido de la mesa ${tableId}.`});
-    setCurrentOrderItems([]);
-  };
-
   
   const handleOpenChange = (open: boolean) => {
     if (open && state.tables.find(t => t.id === tableId)?.status === 'needs-attention') {
@@ -135,7 +108,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
       setView('order'); // Reset view on close
       setCurrentOrderItems([]);
       setActiveCategory(undefined);
-      setEditTimer(0);
     }
     onOpenChange(open);
   }
@@ -149,10 +121,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
       });
     }
   };
-
-  const handleMarkExtraAsDelivered = (orderId: string, menuItemId: string) => {
-    dispatch({ type: 'MARK_EXTRA_AS_DELIVERED', payload: { orderId, menuItemId } });
-  }
 
   const handleFreeUpTable = () => {
     if (existingOrder) {
@@ -245,131 +213,46 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const orderTotal = getTotal(order.items);
     const isOrderReady = order.status === 'ready';
     const isOrderDelivered = order.status === 'delivered';
-    const isEditing = isEditable && editTimer > 0;
 
     return (
-        <div className="h-full flex flex-col">
-            <ScrollArea className="flex-1">
-                <div className="p-6">
-                    {isEditing && (
-                        <div className="p-3 mb-4 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-800">
-                            <p className="font-bold text-center">Tiempo para editar: {editTimer}s</p>
+        <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+                <Badge 
+                    className={cn({ "bg-green-500 text-white": isOrderReady })}
+                    variant={isOrderReady ? 'default' : 'secondary'}
+                >
+                    {order.status}
+                </Badge>
+                <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(order.createdAt, {locale: es})}</span>
+            </div>
+            <h3 className="font-semibold mb-2">Pedido Actual</h3>
+            <div className="space-y-2 mb-4">
+                {order.items.map(item => {
+                    const menuItem = getMenuItem(item.menuItemId);
+                    return (
+                        <div key={item.menuItemId} className="flex justify-between items-center text-sm">
+                            <span>{menuItem?.name} x {item.quantity}</span>
+                            <span>S/.{((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
                         </div>
-                    )}
-                    <div className="flex justify-between items-center mb-4">
-                        <Badge 
-                            className={cn({ "bg-green-500 text-white": isOrderReady })}
-                            variant={isOrderReady ? 'default' : 'secondary'}
-                        >
-                            {order.status}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">hace {formatDistanceToNow(order.createdAt, {locale: es})}</span>
-                    </div>
-                    <h3 className="font-semibold mb-2">Pedido Actual</h3>
-                    <div className="space-y-2 mb-4 pr-4">
-                        {order.items.map(item => {
-                            const menuItem = getMenuItem(item.menuItemId);
-                            return (
-                                <div key={`${item.menuItemId}-${item.status}`} className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                                    <div className="flex items-center gap-2">
-                                        <span>{menuItem?.name} x {item.quantity}</span>
-                                        {item.status === 'extra' && (
-                                            <Badge variant={item.delivered ? "secondary" : "destructive"}>Extra</Badge>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span>S/.{((menuItem?.price || 0) * item.quantity).toFixed(2)}</span>
-                                        {item.status === 'extra' && !item.delivered && (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => handleMarkExtraAsDelivered(order.id, item.menuItemId)}>
-                                                        <Check />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Marcar como entregado</TooltipContent>
-                                            </Tooltip>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="font-bold text-lg flex justify-between pt-2 border-t mt-2">
-                        <span>Total:</span>
-                        <span>S/.{orderTotal.toFixed(2)}</span>
-                    </div>
-                    
-                    {isEditing && (
-                        <div className="mt-6">
-                            <h3 className="font-semibold mb-2">Añadir más items</h3>
-                             <Accordion type="single" collapsible className="w-full" value={activeCategory} onValueChange={setActiveCategory}>
-                                {orderCategories.map(category => menuByCategory[category] && (
-                                    <AccordionItem value={category} key={category} className={cn('mb-2 rounded-lg border-none transition-colors', { 'bg-primary/10': activeCategory === category })}>
-                                        <AccordionTrigger className={cn("hover:bg-primary/10 rounded-lg px-4 py-3 hover:no-underline", { 'bg-primary/10': activeCategory === category })}>
-                                            {category}
-                                        </AccordionTrigger>
-                                        <AccordionContent className="p-2">
-                                            <div className="space-y-2 pt-2">
-                                                {menuByCategory[category].map(item => (
-                                                <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
-                                                    <div>
-                                                    <p className="font-medium">{item.name}</p>
-                                                    <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
-                                                    </div>
-                                                    <Button size="icon" variant="outline" onClick={() => addToOrder(item, true)}>
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </Card>
-                                                ))}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </div>
-                    )}
-                </div>
-            </ScrollArea>
-            <div className="p-6 border-t bg-background">
-                {isEditing ? (
-                    <div>
-                         {currentOrderItems.length > 0 && (
-                            <div className="mb-4">
-                                <h3 className="font-semibold mb-2">Items a agregar:</h3>
-                                 <div className="space-y-2">
-                                    {currentOrderItems.map(orderItem => {
-                                    const menuItem = getMenuItem(orderItem.menuItemId);
-                                    if (!menuItem) return null;
-                                    return (
-                                        <div key={orderItem.menuItemId} className="flex items-center justify-between">
-                                            <p className="font-medium text-sm">{menuItem.name} x {orderItem.quantity}</p>
-                                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
-                                        </div>
-                                    )
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                        <Button onClick={updateOrder} className="w-full" disabled={currentOrderItems.length === 0}>
-                            <Send className="mr-2 h-4 w-4" />
-                            Actualizar Pedido
-                        </Button>
-                    </div>
-                ) : (
-                    <div>
-                        {isOrderReady && (
-                            <Button onClick={handleConfirmDelivery} className="w-full bg-green-600 hover:bg-green-700">
-                                <Truck className="mr-2 h-4 w-4" />
-                                Confirmar Entrega de Pedido
-                            </Button>
-                        )}
-                        {isOrderDelivered && (
-                            <Button onClick={handleFreeUpTable} className="w-full">
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Desocupar Mesa y Generar Boleta
-                            </Button>
-                        )}
-                    </div>
+                    );
+                })}
+            </div>
+            <div className="font-bold text-lg flex justify-between pt-2 border-t mt-2">
+                <span>Total:</span>
+                <span>S/.{orderTotal.toFixed(2)}</span>
+            </div>
+            <div className="mt-6">
+                {isOrderReady && (
+                    <Button onClick={handleConfirmDelivery} className="w-full bg-green-600 hover:bg-green-700">
+                        <Truck className="mr-2 h-4 w-4" />
+                        Confirmar Entrega de Pedido
+                    </Button>
+                )}
+                 {isOrderDelivered && (
+                    <Button onClick={handleFreeUpTable} className="w-full">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Desocupar Mesa y Generar Boleta
+                    </Button>
                 )}
             </div>
         </div>
@@ -389,13 +272,15 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 const isActive = activeCategory === category;
                 return (
                   <AccordionItem value={category} key={category} className={cn('mb-2 rounded-lg border-none transition-colors', { 'bg-primary/10': isActive })}>
-                    <AccordionTrigger className={cn("hover:bg-primary/10 rounded-lg px-4 py-3 hover:no-underline", { 'bg-primary/10': isActive })}>
+                    <AccordionTrigger 
+                      className={cn("hover:no-underline rounded-lg px-4 py-3", isActive ? 'bg-primary/10' : 'hover:bg-primary/5')}
+                    >
                       {category}
                     </AccordionTrigger>
                     <AccordionContent className="p-2">
                       <div className="space-y-2 pt-2">
                         {menuByCategory[category].map(item => (
-                          <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                          <Card key={item.id} className={cn("flex items-center justify-between p-3 rounded-lg", isActive ? 'bg-background/5' : 'bg-background/50')}>
                             <div>
                               <p className="font-medium">{item.name}</p>
                               <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
@@ -429,8 +314,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                                   <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><PlusCircle className="h-4 w-4"/></Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><MinusCircle className="h-4 w-4"/></Button>
                                     <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
                                 </div>
                               </div>
@@ -471,7 +356,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         <SheetHeader className="p-6 pb-2 border-b">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
-            {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? (isEditable ? "Edite el pedido o agregue nuevos items." : "Gestionar pedido existente o liberar la mesa.") : "Tome un nuevo pedido para esta mesa.")}
+            {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
           </SheetDescription>
         </SheetHeader>
         {renderContent()}
