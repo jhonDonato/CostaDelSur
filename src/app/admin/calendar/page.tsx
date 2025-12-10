@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -15,7 +16,7 @@ import { CalendarDays, PlusCircle, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { CalendarEvent } from '@/lib/types';
 
@@ -31,7 +32,6 @@ const eventSchema = z.object({
 export default function CalendarPage() {
   const { state, dispatch } = useAppState();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
@@ -106,7 +106,7 @@ export default function CalendarPage() {
                       </FormItem>
                     )}
                   />
-                   <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-4">
                         <FormField
                             control={form.control}
                             name="date"
