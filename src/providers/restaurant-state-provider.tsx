@@ -5,7 +5,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useState, useReducer, useEffect, useCallback } from 'react';
 import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, Note, CalendarEvent } from '@/lib/types';
-import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes, initialCalendarEvents } from '@/lib/data';
+import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes } from '@/lib/data';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { differenceInCalendarDays } from 'date-fns';
 
@@ -33,7 +33,9 @@ type Action =
   | { type: 'ADD_NOTE', payload: Note }
   | { type: 'REMOVE_NOTE', payload: { noteId: string } }
   | { type: 'ADD_EVENT', payload: CalendarEvent }
-  | { type: 'REMOVE_EVENT', payload: { eventId: string } };
+  | { type: 'REMOVE_EVENT', payload: { eventId: string } }
+  | { type: 'ADD_TABLE' }
+  | { type: 'REMOVE_TABLE' };
 
 const reducer = (state: RestaurantState, action: Action): RestaurantState => {
   switch (action.type) {
@@ -228,6 +230,27 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             ...state,
             calendarEvents: state.calendarEvents.filter(e => e.id !== action.payload.eventId)
         };
+    case 'ADD_TABLE': {
+        const newTableId = state.tables.length > 0 ? Math.max(...state.tables.map(t => t.id)) + 1 : 1;
+        const newTable: Table = { id: newTableId, status: 'free' };
+        return {
+            ...state,
+            tables: [...state.tables, newTable],
+        };
+    }
+    case 'REMOVE_TABLE': {
+        if (state.tables.length === 0) return state;
+        const tableToRemove = state.tables[state.tables.length - 1];
+        // Ensure we don't remove a table that is occupied or needs attention
+        if (tableToRemove.status !== 'free') {
+            // Optionally, add a notification that the table can't be removed
+            return state;
+        }
+        return {
+            ...state,
+            tables: state.tables.slice(0, -1),
+        };
+    }
     default:
       return state;
   }
@@ -250,7 +273,7 @@ const initialState: RestaurantState = {
   notifications: [],
   offers: initialOffers,
   notes: initialNotes,
-  calendarEvents: initialCalendarEvents,
+  calendarEvents: [],
 };
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
@@ -375,3 +398,5 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
+
+    

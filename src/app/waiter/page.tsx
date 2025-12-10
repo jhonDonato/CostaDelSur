@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -365,14 +366,39 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
 
 export default function WaiterDashboardPage() {
-  const { state } = useAppState();
+  const { state, dispatch } = useAppState();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   
   return (
+    <TooltipProvider>
     <div className="space-y-6">
-        <div className="space-y-2">
-            <h1 className="text-3xl font-bold font-headline">Gestión de Mesas</h1>
-            <p className="text-muted-foreground">Seleccione una mesa para ver su estado o tomar un pedido.</p>
+        <div className="flex justify-between items-center">
+            <div>
+                <h1 className="text-3xl font-bold font-headline">Gestión de Mesas</h1>
+                <p className="text-muted-foreground">Seleccione una mesa para ver su estado o tomar un pedido.</p>
+            </div>
+            <div className="flex gap-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'ADD_TABLE'})}>
+                            <PlusCircle />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Añadir Mesa</p>
+                    </TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_TABLE'})} disabled={state.tables.length === 0}>
+                            <MinusCircle />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Eliminar Última Mesa</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {state.tables.map((table) => (
@@ -393,7 +419,10 @@ export default function WaiterDashboardPage() {
             />
         )}
     </div>
+    </TooltipProvider>
   );
 }
+
+    
 
     
