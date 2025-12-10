@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent } from '@/lib/types';
-
+import { publicHolidays } from '@/lib/data';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const eventSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -58,14 +59,69 @@ export default function CalendarPage() {
     .filter(event => startOfDay(event.date) >= startOfDay(new Date()))
     .sort((a,b) => a.date.getTime() - b.date.getTime());
 
+  const allEvents = [...state.calendarEvents, ...publicHolidays];
+
+  const modifiers = {
+    personal: state.calendarEvents.map(e => e.date),
+    holiday: publicHolidays.map(h => h.date),
+  };
+
+  const modifiersClassNames = {
+    personal: 'bg-primary text-primary-foreground rounded-full',
+    holiday: 'bg-destructive/80 text-destructive-foreground rounded-full',
+  };
+  
+  const DayWithTooltip = ({ date, displayMonth }: { date: Date; displayMonth: Date }) => {
+    const eventsForDay = allEvents.filter(e => isSameDay(e.date, date));
+    if (eventsForDay.length > 0) {
+      return (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center rounded-md",
+                  date.getMonth() !== displayMonth.getMonth() && "text-muted-foreground opacity-50"
+                )}
+              >
+                {format(date, 'd')}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <ul className="list-disc pl-4">
+                {eventsForDay.map((e, i) => <li key={i}>{e.title || (e as any).name}</li>)}
+              </ul>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return (
+      <div
+        className={cn(
+            "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center rounded-md",
+            date.getMonth() !== displayMonth.getMonth() && "text-muted-foreground opacity-50"
+        )}
+        >
+        {format(date, 'd')}
+      </div>
+    );
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <CalendarComponentIcon className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold font-headline">Calendario de Actividades</h1>
-          <p className="text-muted-foreground">Planifica y visualiza los eventos importantes.</p>
+          <p className="text-muted-foreground">Planifica y visualiza los eventos importantes y feriados.</p>
         </div>
+      </div>
+      
+      <div className="flex gap-4 text-sm">
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-primary" /> Evento Personal</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-destructive/80" /> Feriado</div>
       </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -77,20 +133,21 @@ export default function CalendarPage() {
                 <CardContent>
                     <CalendarComponent
                         mode="multiple"
-                        selected={state.calendarEvents.map(e => e.date)}
+                        selected={[...state.calendarEvents.map(e => e.date), ...publicHolidays.map(h => h.date)]}
                         className="p-0"
-                        classNames={{
-                            day_selected: "bg-primary text-primary-foreground rounded-full",
-                            day: "h-9 w-9 p-0",
-                        }}
                         locale={es}
+                        modifiers={modifiers}
+                        modifiersClassNames={modifiersClassNames}
+                        components={{
+                            Day: DayWithTooltip
+                        }}
                      />
                 </CardContent>
             </Card>
             
             <Card className="mt-8">
                 <CardHeader>
-                    <CardTitle>Próximos Eventos</CardTitle>
+                    <CardTitle>Próximos Eventos Personales</CardTitle>
                     <CardDescription>Eventos programados para los siguientes días.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -200,3 +257,5 @@ export default function CalendarPage() {
     </div>
   );
 }
+
+    

@@ -64,9 +64,17 @@ export type CalendarEvent = {
     description: string;
 }
 
+export type PublicHoliday = {
+  date: Date;
+  name: string;
+  type: 'national' | 'regional' | 'observance';
+};
+
 export type Note = {
     id: string;
     title: string;
     content: string;
     createdAt: number;
 }
+
+    
