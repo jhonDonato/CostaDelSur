@@ -187,8 +187,8 @@ export default function HomePage() {
                     className="mt-8 animate-fade-in-up"
                     style={{animationDelay: '0.8s', animationFillMode: 'backwards'}}
                     >
-                    <Link href="/menu" passHref>
-                        <Button size="lg" className="text-lg bg-primary hover:bg-primary/90 text-primary-foreground">Ver Menú Completo</Button>
+                    <Link href="/#platos-destacados" passHref>
+                        <Button size="lg" className="text-lg bg-primary hover:bg-primary/90 text-primary-foreground">Ver todos los platos</Button>
                     </Link>
                     </div>
                 </div>
@@ -199,7 +199,7 @@ export default function HomePage() {
         </main>
       </div>
 
-      <section className="py-16 bg-background text-foreground">
+      <section id="platos-destacados" className="py-16 bg-background text-foreground">
           <div className="container mx-auto px-4 space-y-20">
             {allAvailableItems.length > 0 && (
               <div>
