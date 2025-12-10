@@ -1,6 +1,6 @@
 
 
-import type { User, MenuItem, Table, Order, Offer, CalendarEvent, Note, PublicHoliday } from '@/lib/types';
+import type { User, MenuItem, Table, Order, Offer, Note } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -162,21 +162,6 @@ export const initialOrders: Order[] = [
   },
 ];
 
-export const initialCalendarEvents: CalendarEvent[] = [
-    {
-        id: 'event-1',
-        date: new Date(new Date().setDate(new Date().getDate() + 5)),
-        title: 'Reunión de Personal',
-        description: 'Revisión mensual de objetivos y desempeño.'
-    },
-     {
-        id: 'event-2',
-        date: new Date(new Date().setDate(new Date().getDate() + 10)),
-        title: 'Inspección Sanitaria',
-        description: 'Preparar todas las áreas para la inspección anual.'
-    }
-]
-
 export const initialNotes: Note[] = [
     {
         id: 'note-1',
@@ -200,19 +185,3 @@ initialOrders.forEach(order => {
     table.status = 'occupied';
   }
 });
-
-// Feriados en Perú (ejemplos)
-export const publicHolidays: PublicHoliday[] = [
-    { date: new Date(new Date().getFullYear(), 0, 1), name: 'Año Nuevo', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 4, 1), name: 'Día del Trabajo', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 5, 29), name: 'Día de San Pedro y San Pablo', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 6, 28), name: 'Día de la Independencia', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 6, 29), name: 'Fiestas Patrias', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 7, 30), name: 'Santa Rosa de Lima', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 9, 8), name: 'Combate de Angamos', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 10, 1), name: 'Día de Todos los Santos', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 11, 8), name: 'Inmaculada Concepción', type: 'national' },
-    { date: new Date(new Date().getFullYear(), 11, 25), name: 'Navidad', type: 'national' },
-];
-
-    

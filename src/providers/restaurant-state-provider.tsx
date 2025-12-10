@@ -4,10 +4,9 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useState, useReducer, useEffect, useCallback } from 'react';
-import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, CalendarEvent, Note } from '@/lib/types';
-import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialCalendarEvents, initialNotes } from '@/lib/data';
+import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, Note } from '@/lib/types';
+import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes } from '@/lib/data';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
-import { isToday } from 'date-fns';
 
 type RestaurantState = {
   tables: Table[];
@@ -15,7 +14,6 @@ type RestaurantState = {
   orders: Order[];
   notifications: Notification[];
   offers: Offer[];
-  calendarEvents: CalendarEvent[];
   notes: Note[];
 };
 
@@ -30,7 +28,6 @@ type Action =
   | { type: 'UPDATE_OFFER'; payload: Offer }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
-  | { type: 'ADD_CALENDAR_EVENT', payload: CalendarEvent }
   | { type: 'ADD_NOTE', payload: Note };
 
 const reducer = (state: RestaurantState, action: Action): RestaurantState => {
@@ -206,11 +203,6 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             ...state,
             orders: state.orders.map(o => o.id === action.payload.orderId ? { ...o, deliveryTimerId: action.payload.timerId } : o)
         };
-    case 'ADD_CALENDAR_EVENT':
-        return {
-            ...state,
-            calendarEvents: [...state.calendarEvents, action.payload]
-        };
     case 'ADD_NOTE':
         return {
             ...state,
@@ -237,7 +229,6 @@ const initialState: RestaurantState = {
   orders: initialOrders,
   notifications: [],
   offers: initialOffers,
-  calendarEvents: initialCalendarEvents,
   notes: initialNotes,
 };
 
@@ -318,33 +309,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         });
     };
   }, [state.orders]);
-
-  // Effect for calendar event reminders
-  useEffect(() => {
-    const checkEvents = () => {
-        state.calendarEvents.forEach(event => {
-            if (isToday(event.date)) {
-                const notifId = `event-reminder-${event.id}`;
-                 if (!state.notifications.some(n => n.id === notifId)) {
-                    const newNotification: Notification = {
-                        id: notifId,
-                        message: `Recordatorio de evento hoy: ${event.title}`,
-                        type: 'event-reminder',
-                        timestamp: Date.now(),
-                        read: false,
-                    };
-                    dispatch({ type: 'ADD_NOTIFICATION', payload: newNotification });
-                 }
-            }
-        });
-    };
-
-    // Check once on mount and then set an interval to check daily
-    checkEvents();
-    const intervalId = setInterval(checkEvents, 1000 * 60 * 60 * 24); // Check once a day
-
-    return () => clearInterval(intervalId);
-  }, [state.calendarEvents, state.notifications]);
 
   const getMenuItem = (id: string) => state.menuItems.find(item => item.id === id);
   const getOrderForTable = (tableId: number) => {

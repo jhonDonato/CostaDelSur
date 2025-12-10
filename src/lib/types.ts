@@ -57,24 +57,9 @@ export type Offer = {
   published: boolean;
 };
 
-export type CalendarEvent = {
-    id: string;
-    date: Date;
-    title: string;
-    description: string;
-}
-
-export type PublicHoliday = {
-  date: Date;
-  name: string;
-  type: 'national' | 'regional' | 'observance';
-};
-
 export type Note = {
     id: string;
     title: string;
     content: string;
     createdAt: number;
 }
-
-    
