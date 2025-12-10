@@ -124,43 +124,10 @@ export const offers: Offer[] = [
 
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
-  status: i % 3 === 0 ? 'free' : (i % 3 === 1 ? 'occupied' : 'free'),
+  status: 'free',
 }));
 
-export const initialOrders: Order[] = [
-  { 
-    id: 'order-1',
-    tableId: 2,
-    items: [
-      { menuItemId: '1', quantity: 2 },
-      { menuItemId: '2', quantity: 1 },
-    ],
-    status: 'preparing',
-    createdAt: Date.now() - 5 * 60 * 1000,
-    estimatedDeliveryTime: 15,
-  },
-  {
-    id: 'order-2',
-    tableId: 5,
-    items: [
-      { menuItemId: '4', quantity: 1 },
-    ],
-    status: 'pending',
-    createdAt: Date.now() - 2 * 60 * 1000,
-    estimatedDeliveryTime: 10,
-  },
-  {
-    id: 'order-3',
-    tableId: 8,
-    items: [
-      { menuItemId: '7', quantity: 2 },
-      { menuItemId: '3', quantity: 2 },
-    ],
-    status: 'ready',
-    createdAt: Date.now() - 10 * 60 * 1000,
-    estimatedDeliveryTime: 20,
-  },
-];
+export const initialOrders: Order[] = [];
 
 export const initialNotes: Note[] = [
     {
