@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import type { CalendarEvent } from '@/lib/types';
 import { publicHolidays } from '@/lib/data';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { DayProps } from 'react-day-picker';
 
 const eventSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -71,8 +72,12 @@ export default function CalendarPage() {
     holiday: 'bg-destructive/80 text-destructive-foreground rounded-full',
   };
   
-  const DayWithTooltip = ({ date, displayMonth }: { date: Date; displayMonth: Date }) => {
+  const DayWithTooltip = (props: DayProps) => {
+    const { date, displayMonth } = props;
+    if (!date) return <div />;
+
     const eventsForDay = allEvents.filter(e => isSameDay(e.date, date));
+    
     if (eventsForDay.length > 0) {
       return (
         <TooltipProvider delayDuration={0}>
@@ -96,6 +101,7 @@ export default function CalendarPage() {
         </TooltipProvider>
       );
     }
+
     return (
       <div
         className={cn(
@@ -257,5 +263,3 @@ export default function CalendarPage() {
     </div>
   );
 }
-
-    
