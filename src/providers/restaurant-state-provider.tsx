@@ -36,7 +36,9 @@ type Action =
   | { type: 'ADD_EVENT', payload: CalendarEvent }
   | { type: 'REMOVE_EVENT', payload: { eventId: string } }
   | { type: 'ADD_TABLE' }
-  | { type: 'REMOVE_TABLE' };
+  | { type: 'REMOVE_TABLE' }
+  | { type: 'EDIT_ORDER'; payload: { orderId: string; newItems: OrderItem[] } }
+  | { type: 'CANCEL_ORDER'; payload: { orderId: string } };
 
 const createReducer = (toast: (options: { title: string, description: string, variant?: 'default' | 'destructive' }) => void) => (state: RestaurantState, action: Action): RestaurantState => {
   switch (action.type) {
@@ -131,6 +133,28 @@ const createReducer = (toast: (options: { title: string, description: string, va
             clearTimeout(order.deliveryTimerId);
           }
       }
+      
+      if(action.payload.status === 'cancelled' && order){
+          // Return stock to inventory
+          const newMenuItems = state.menuItems.map(menuItem => {
+            const orderItem = order.items.find(i => i.menuItemId === menuItem.id);
+            if (orderItem) {
+                return { ...menuItem, stock: menuItem.stock + orderItem.quantity };
+            }
+            return menuItem;
+          });
+          const newTables = state.tables.map(t => t.id === order.tableId ? { ...t, status: 'free', orderId: undefined } : t);
+
+          const updatedOrders = state.orders.filter(o => o.id !== action.payload.orderId);
+          
+          return {
+              ...state,
+              menuItems: newMenuItems,
+              tables: newTables,
+              orders: updatedOrders,
+          };
+      }
+
 
       const updatedOrders = state.orders.map(o =>
           o.id === action.payload.orderId ? { ...o, status: action.payload.status, deliveryTimerId: action.payload.status === 'delivered' ? undefined : o.deliveryTimerId } : o
@@ -276,6 +300,102 @@ const createReducer = (toast: (options: { title: string, description: string, va
             tables: state.tables.slice(0, -1),
         };
     }
+     case 'EDIT_ORDER': {
+      const { orderId, newItems } = action.payload;
+      const orderIndex = state.orders.findIndex((o) => o.id === orderId);
+      if (orderIndex === -1) return state;
+
+      const originalOrder = state.orders[orderIndex];
+      if (originalOrder.status !== 'pending') {
+        toast({ title: "Error", description: "Solo se pueden editar pedidos pendientes.", variant: 'destructive' });
+        return state;
+      }
+      
+      let currentStock = [...state.menuItems];
+      // 1. Return original items to stock
+      for (const item of originalOrder.items) {
+          const menuItemIndex = currentStock.findIndex(mi => mi.id === item.menuItemId);
+          if (menuItemIndex !== -1) {
+              currentStock[menuItemIndex] = { ...currentStock[menuItemIndex], stock: currentStock[menuItemIndex].stock + item.quantity };
+          }
+      }
+
+      // 2. Check if new items are available and deduct them from stock
+      let canFulfill = true;
+      let updatedStock = [...currentStock];
+      for (const item of newItems) {
+          const menuItemIndex = updatedStock.findIndex(mi => mi.id === item.menuItemId);
+          if (menuItemIndex === -1 || updatedStock[menuItemIndex].stock < item.quantity) {
+              canFulfill = false;
+              break;
+          }
+          updatedStock[menuItemIndex] = { ...updatedStock[menuItemIndex], stock: updatedStock[menuItemIndex].stock - item.quantity };
+      }
+
+      if (!canFulfill) {
+        toast({ title: "Stock Insuficiente", description: "No hay suficiente stock para la nueva orden. No se aplicaron cambios.", variant: "destructive" });
+        return state; // Revert stock changes by not updating the state
+      }
+
+      // 3. If successful, update order and stock
+      const updatedOrders = state.orders.map(o =>
+        o.id === orderId ? { ...o, items: newItems, lastUpdatedAt: Date.now() } : o
+      );
+      
+      const newNotification: Notification = {
+        id: `notif-edit-${Date.now()}`,
+        message: `El pedido de la Mesa ${originalOrder.tableId} fue modificado.`,
+        type: 'order-ready', // Using this type for now
+        tableId: originalOrder.tableId,
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      return {
+        ...state,
+        orders: updatedOrders,
+        menuItems: updatedStock,
+        notifications: [newNotification, ...state.notifications],
+      };
+    }
+
+    case 'CANCEL_ORDER': {
+      const { orderId } = action.payload;
+      const orderToCancel = state.orders.find((o) => o.id === orderId);
+
+      if (!orderToCancel) return state;
+
+      // Return stock
+      const newMenuItems = state.menuItems.map(menuItem => {
+          const orderItem = orderToCancel.items.find(i => i.menuItemId === menuItem.id);
+          if (orderItem) {
+              return { ...menuItem, stock: menuItem.stock + orderItem.quantity };
+          }
+          return menuItem;
+      });
+
+      // Free up table
+      const newTables = state.tables.map(t =>
+          t.id === orderToCancel.tableId ? { ...t, status: 'free', orderId: undefined } : t
+      );
+      
+       const newNotification: Notification = {
+        id: `notif-cancel-${Date.now()}`,
+        message: `El pedido de la Mesa ${orderToCancel.tableId} ha sido cancelado.`,
+        type: 'call',
+        tableId: orderToCancel.tableId,
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      return {
+        ...state,
+        orders: state.orders.filter(o => o.id !== orderId),
+        menuItems: newMenuItems,
+        tables: newTables,
+        notifications: [newNotification, ...state.notifications],
+      };
+    }
     default:
       return state;
   }
@@ -417,3 +537,5 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
+
+    

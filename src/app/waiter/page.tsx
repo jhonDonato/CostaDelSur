@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
+import { Plus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle, Edit, FileX, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem, Order } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,16 @@ import { es } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -48,12 +58,26 @@ function TableCard({ tableId, status, onSelect }: { tableId: number; status: str
 function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
   const { state, dispatch, getMenuItem, getOrderForTable } = useAppState();
   const { toast } = useToast();
-  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
-  const [deliveryTime, setDeliveryTime] = useState('15');
-  const [view, setView] = useState<'order' | 'receipt'>('order');
-  const [activeCategory, setActiveCategory] = useState<string | undefined>();
   
   const existingOrder = getOrderForTable(tableId);
+
+  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
+  const [deliveryTime, setDeliveryTime] = useState('15');
+  const [view, setView] = useState<'order' | 'receipt' | 'edit'>('order');
+  const [activeCategory, setActiveCategory] = useState<string | undefined>();
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+        if (existingOrder) {
+            setView('order');
+        } else {
+            setView('order');
+            setCurrentOrderItems([]);
+        }
+    }
+  }, [isOpen, existingOrder]);
+
 
   const addToOrder = (item: MenuItem) => {
     if (item.stock === 0) {
@@ -105,7 +129,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         dispatch({ type: 'UPDATE_TABLE_STATUS', payload: { tableId, status: 'occupied' } });
     }
     if (!open) {
-      setView('order'); // Reset view on close
+      setView('order');
       setCurrentOrderItems([]);
       setActiveCategory(undefined);
     }
@@ -139,6 +163,37 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
       }
   }
 
+   const handleEditClick = () => {
+    if (existingOrder) {
+      setCurrentOrderItems(existingOrder.items);
+      setView('edit');
+    }
+  };
+
+  const handleCancelClick = () => {
+    setIsCancelAlertOpen(true);
+  }
+
+  const confirmCancelOrder = () => {
+     if (existingOrder) {
+        dispatch({ type: 'CANCEL_ORDER', payload: { orderId: existingOrder.id } });
+        toast({ title: "Pedido Cancelado", description: `El pedido de la mesa ${tableId} ha sido cancelado.` });
+        onOpenChange(false);
+     }
+     setIsCancelAlertOpen(false);
+  };
+
+  const handleUpdateOrder = () => {
+    if (!existingOrder) return;
+    if (currentOrderItems.length === 0) {
+        toast({ title: "Orden Vacía", description: "No puedes dejar un pedido sin items. Cancela el pedido si es necesario.", variant: "destructive" });
+        return;
+    }
+    dispatch({ type: 'EDIT_ORDER', payload: { orderId: existingOrder.id, newItems: currentOrderItems } });
+    toast({ title: "Pedido Actualizado", description: `El pedido de la mesa ${tableId} ha sido actualizado.` });
+    setView('order');
+  };
+
   const getTotal = (items: OrderItem[]) => {
       return items.reduce((total, orderItem) => {
           const menuItem = getMenuItem(orderItem.menuItemId);
@@ -146,7 +201,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
       }, 0);
   };
 
-  const menuByCategory = state.menuItems.reduce((acc, item) => {
+  const menuByCategory = useMemo(() => state.menuItems.reduce((acc, item) => {
     if (item.stock > 0) {
         if (!acc[item.category]) {
             acc[item.category] = [];
@@ -154,7 +209,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         acc[item.category].push(item);
     }
     return acc;
-  }, {} as Record<MenuItem['category'], MenuItem[]>);
+  }, {} as Record<MenuItem['category'], MenuItem[]>), [state.menuItems]);
 
   const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
@@ -211,6 +266,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const renderExistingOrderView = (order: Order) => {
     const orderTotal = getTotal(order.items);
+    const isPending = order.status === 'pending';
     const isOrderReady = order.status === 'ready';
     const isOrderDelivered = order.status === 'delivered';
 
@@ -218,7 +274,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
                 <Badge 
-                    className={cn({ "bg-green-500 text-white": isOrderReady })}
+                    className={cn({ "bg-green-500 text-white": isOrderReady, "bg-orange-500 text-white animate-pulse": isPending })}
                     variant={isOrderReady ? 'default' : 'secondary'}
                 >
                     {order.status}
@@ -241,7 +297,19 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 <span>Total:</span>
                 <span>S/.{orderTotal.toFixed(2)}</span>
             </div>
-            <div className="mt-6">
+            <div className="mt-6 space-y-2">
+                 {isPending && (
+                    <>
+                        <Button onClick={handleEditClick} className="w-full" variant="outline">
+                            <Edit className="mr-2 h-4 w-4" />
+                            Añadir / Editar Pedido
+                        </Button>
+                        <Button onClick={handleCancelClick} className="w-full" variant="destructive">
+                            <FileX className="mr-2 h-4 w-4" />
+                            Cancelar Pedido
+                        </Button>
+                    </>
+                )}
                 {isOrderReady && (
                     <Button onClick={handleConfirmDelivery} className="w-full bg-green-600 hover:bg-green-700">
                         <Truck className="mr-2 h-4 w-4" />
@@ -259,7 +327,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     )
   }
 
-  const renderNewOrderView = () => {
+  const renderNewOrEditOrderView = (isEditing: boolean) => {
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
@@ -268,18 +336,19 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
           <div className="p-6">
             <Accordion type="single" collapsible className="w-full" value={activeCategory} onValueChange={setActiveCategory}>
               {orderCategories.map(category => {
-                if (!menuByCategory[category]) return null;
+                const categoryItems = menuByCategory[category];
+                if (!categoryItems) return null;
                 const isActive = activeCategory === category;
                 return (
                   <AccordionItem value={category} key={category} className={cn('mb-2 rounded-lg border-none transition-colors', { 'bg-primary/10': isActive })}>
                     <AccordionTrigger 
-                      className={cn("hover:no-underline rounded-lg px-4 py-3", isActive ? 'bg-primary/10' : 'hover:bg-primary/5')}
+                      className={cn("hover:no-underline rounded-lg px-4 py-3", isActive ? 'bg-primary/10' : 'hover:bg-accent hover:text-accent-foreground')}
                     >
                       {category}
                     </AccordionTrigger>
                     <AccordionContent className="p-2">
                       <div className="space-y-2 pt-2">
-                        {menuByCategory[category].map(item => (
+                        {categoryItems.map(item => (
                           <Card key={item.id} className={cn("flex items-center justify-between p-3 rounded-lg", isActive ? 'bg-background/5' : 'bg-background/50')}>
                             <div>
                               <p className="font-medium">{item.name}</p>
@@ -330,14 +399,23 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                   <span>Total:</span>
                   <span>S/.{newOrderTotal.toFixed(2)}</span>
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
-                  <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
-                </div>
-                <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
-                  <Send className="mr-2 h-4 w-4" />
-                  Enviar Pedido a Cocina
-                </Button>
+                 {!isEditing && (
+                    <div className="space-y-2">
+                        <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
+                        <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
+                    </div>
+                 )}
+                {isEditing ? (
+                    <Button onClick={handleUpdateOrder} className="w-full" disabled={currentOrderItems.length === 0}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Actualizar y Enviar a Cocina
+                    </Button>
+                ) : (
+                    <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
+                        <Send className="mr-2 h-4 w-4" />
+                        Enviar Pedido a Cocina
+                    </Button>
+                )}
               </div>
           </div>
       </div>
@@ -346,8 +424,9 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   const renderContent = () => {
     if(view === 'receipt') return renderReceiptView();
+    if(view === 'edit') return renderNewOrEditOrderView(true);
     if(existingOrder) return renderExistingOrderView(existingOrder);
-    return renderNewOrderView();
+    return renderNewOrEditOrderView(false);
   }
 
   return (
@@ -356,10 +435,31 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         <SheetHeader className="p-6 pb-2 border-b">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
-            {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
+            {
+              view === 'receipt' ? "Boleta de venta para el cliente." :
+              view === 'edit' ? `Editando el pedido para la mesa ${tableId}.` :
+              existingOrder ? "Gestionar pedido existente o liberar la mesa." : 
+              "Tome un nuevo pedido para esta mesa."
+            }
           </SheetDescription>
         </SheetHeader>
         {renderContent()}
+         <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Esta acción cancelará el pedido completo para la Mesa {tableId}. No se puede deshacer.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel>Volver</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmCancelOrder} className={cn(buttonVariants({variant: "destructive"}))}>
+                    Confirmar Cancelación
+                </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
@@ -423,3 +523,5 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
