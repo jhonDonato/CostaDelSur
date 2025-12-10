@@ -268,16 +268,18 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
     return (
       <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full px-6">
+        <ScrollArea className="flex-1">
+          <div className="px-6 pt-2 pb-6">
             <Accordion type="multiple" className="w-full">
               {orderCategories.map(category => {
                 if (!menuByCategory[category]) return null;
                 return (
                   <AccordionItem value={category} key={category}>
-                    <AccordionTrigger>{category}</AccordionTrigger>
+                    <AccordionTrigger className="hover:bg-accent">
+                      {category}
+                    </AccordionTrigger>
                     <AccordionContent>
-                      <div className="space-y-2">
+                      <div className="space-y-2 pt-2">
                         {menuByCategory[category].map(item => (
                           <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg">
                             <div>
@@ -295,53 +297,48 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 )
               })}
             </Accordion>
-          </ScrollArea>
-        </div>
-        
-        <div className="mt-auto border-t bg-background p-6">
-          <div className="space-y-4">
-            <h3 className="font-semibold">Resumen del Pedido</h3>
-            {currentOrderItems.length > 0 ? (
-              <>
-                <ScrollArea className="max-h-32">
-                  <div className="space-y-2 pr-4">
-                    {currentOrderItems.map(orderItem => {
-                      const menuItem = getMenuItem(orderItem.menuItemId);
-                      if (!menuItem) return null;
-                      return (
-                        <div key={orderItem.menuItemId} className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-sm">{menuItem.name}</p>
-                            <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </ScrollArea>
-                <div className="font-bold text-lg flex justify-between pt-2 border-t">
-                  <span>Total:</span>
-                  <span>S/.{newOrderTotal.toFixed(2)}</span>
+             <div className="mt-6 border-t pt-6 space-y-4">
+                <h3 className="font-semibold">Resumen del Pedido</h3>
+                {currentOrderItems.length > 0 ? (
+                  <>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {currentOrderItems.map(orderItem => {
+                          const menuItem = getMenuItem(orderItem.menuItemId);
+                          if (!menuItem) return null;
+                          return (
+                            <div key={orderItem.menuItemId} className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-sm">{menuItem.name}</p>
+                                <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+                    <div className="font-bold text-lg flex justify-between pt-2 border-t">
+                      <span>Total:</span>
+                      <span>S/.{newOrderTotal.toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
+                )}
+                 <div className="space-y-2">
+                  <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
+                  <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
                 </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
-            )}
-             <div className="space-y-2">
-              <Label htmlFor="deliveryTime">Tiempo de Entrega (min)</Label>
-              <Input id="deliveryTime" type="number" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} placeholder="Ej: 15" />
-            </div>
-            <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
-              <Send className="mr-2 h-4 w-4" />
-              Enviar Pedido a Cocina
-            </Button>
+                <Button onClick={submitOrder} className="w-full" disabled={currentOrderItems.length === 0}>
+                  <Send className="mr-2 h-4 w-4" />
+                  Enviar Pedido a Cocina
+                </Button>
+              </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
     )
   }
@@ -349,7 +346,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-0">
-        <SheetHeader className="p-6 pb-2">
+        <SheetHeader className="p-6 pb-2 border-b">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
             {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
@@ -421,7 +418,5 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
-
-    
 
     
