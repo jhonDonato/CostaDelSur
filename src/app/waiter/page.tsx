@@ -73,7 +73,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         if (existing && existing.quantity > 1) {
             return prev.map(oi => oi.menuItemId === itemId ? { ...oi, quantity: oi.quantity - 1 } : oi);
         }
-        // If quantity is 1, it will be removed, same as remove from order
         return prev.filter(oi => oi.menuItemId !== itemId);
       });
   };
@@ -274,15 +273,15 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto -mr-6 -ml-6 pr-2">
-                 <Accordion type="multiple" defaultValue={['Entradas']} className="w-full space-y-2 px-6">
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-6">
+                <Accordion type="multiple" defaultValue={['Entradas']} className="w-full space-y-2">
                     {orderCategories.map(category => {
                       if (!menuByCategory[category]) return null;
                       const config = categoryConfig[category];
                       const Icon = config.icon;
                       return (
-                            <AccordionItem value={category} key={category} className="border-none rounded-lg ${config.bg}">
+                            <AccordionItem value={category} key={category} className={`border-none rounded-lg ${config.bg}`}>
                                 <AccordionTrigger className="font-semibold text-base py-3 px-4 hover:no-underline rounded-lg">
                                   <div className="flex items-center gap-3">
                                     <Icon className="h-5 w-5"/>
@@ -323,18 +322,14 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                             return (
                             <div key={orderItem.menuItemId} className="flex items-center justify-between">
                                 <div>
-                                    <p className="font-medium text-sm">{menuItem.name}</p>
+                                    <p className="font-medium text-sm">{menuItem.name} x {orderItem.quantity}</p>
                                     <p className="text-xs text-muted-foreground">S/.{menuItem.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Button size="icon" variant="ghost" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
-                                       <MinusCircle className="h-5 w-5 text-muted-foreground"/>
+                                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => decreaseQuantity(orderItem.menuItemId)}>
+                                       <Minus className="h-4 w-4"/>
                                     </Button>
-                                    <span className="w-6 text-center font-bold">{orderItem.quantity}</span>
-                                    <Button size="icon" variant="ghost" onClick={() => addToOrder(menuItem)}>
-                                        <PlusCircle className="h-5 w-5 text-muted-foreground"/>
-                                    </Button>
-                                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
+                                    <Button size="icon" variant="ghost" className="h-4 w-4 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}>
                                         <Trash2 className="h-4 w-4"/>
                                     </Button>
                                 </div>
@@ -365,15 +360,15 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-0 overflow-y-auto">
-        <SheetHeader className="p-6 pb-2 sticky top-0 bg-background z-10">
+      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-6">
+        <SheetHeader>
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
             {view === 'receipt' ? "Boleta de venta para el cliente." : (existingOrder ? "Gestionar pedido existente o liberar la mesa." : "Tome un nuevo pedido para esta mesa.")}
           </SheetDescription>
         </SheetHeader>
         
-        {view === 'receipt' ? <div className="p-6 pt-0">{renderReceiptView()}</div> : <div className="flex-1 flex flex-col min-h-0">{renderOrderView()}</div>}
+        {view === 'receipt' ? renderReceiptView() : renderOrderView()}
         
       </SheetContent>
     </Sheet>
