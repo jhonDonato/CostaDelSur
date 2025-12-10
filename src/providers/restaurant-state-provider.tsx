@@ -4,9 +4,10 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useState, useReducer, useEffect, useCallback } from 'react';
-import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, Note } from '@/lib/types';
-import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes } from '@/lib/data';
+import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, Note, CalendarEvent } from '@/lib/types';
+import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes, initialCalendarEvents } from '@/lib/data';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
+import { differenceInCalendarDays } from 'date-fns';
 
 type RestaurantState = {
   tables: Table[];
@@ -15,6 +16,7 @@ type RestaurantState = {
   notifications: Notification[];
   offers: Offer[];
   notes: Note[];
+  calendarEvents: CalendarEvent[];
 };
 
 type Action =
@@ -28,7 +30,9 @@ type Action =
   | { type: 'UPDATE_OFFER'; payload: Offer }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
-  | { type: 'ADD_NOTE', payload: Note };
+  | { type: 'ADD_NOTE', payload: Note }
+  | { type: 'ADD_EVENT', payload: CalendarEvent }
+  | { type: 'REMOVE_EVENT', payload: { eventId: string } };
 
 const reducer = (state: RestaurantState, action: Action): RestaurantState => {
   switch (action.type) {
@@ -208,6 +212,16 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             ...state,
             notes: [action.payload, ...state.notes]
         };
+    case 'ADD_EVENT':
+        return {
+            ...state,
+            calendarEvents: [...state.calendarEvents, action.payload]
+        };
+    case 'REMOVE_EVENT':
+        return {
+            ...state,
+            calendarEvents: state.calendarEvents.filter(e => e.id !== action.payload.eventId)
+        };
     default:
       return state;
   }
@@ -230,6 +244,7 @@ const initialState: RestaurantState = {
   notifications: [],
   offers: initialOffers,
   notes: initialNotes,
+  calendarEvents: initialCalendarEvents,
 };
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
@@ -309,6 +324,37 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         });
     };
   }, [state.orders]);
+
+  // Effect for calendar event reminders
+  useEffect(() => {
+    const checkEvents = () => {
+        const now = new Date();
+        state.calendarEvents.forEach(event => {
+            const eventDate = new Date(event.date);
+            const diffDays = differenceInCalendarDays(eventDate, now);
+
+            if (diffDays === 1) { // 1 day before
+                const notifId = `event-reminder-${event.id}`;
+                if (!state.notifications.some(n => n.id === notifId)) {
+                    const newNotification: Notification = {
+                        id: notifId,
+                        message: `Recordatorio: Mañana es el evento "${event.title}" a las ${event.time}.`,
+                        type: 'event-reminder',
+                        timestamp: Date.now(),
+                        read: false,
+                    };
+                    dispatch({ type: 'ADD_NOTIFICATION', payload: newNotification });
+                }
+            }
+        });
+    };
+
+    // Check once on load and then every hour
+    checkEvents();
+    const intervalId = setInterval(checkEvents, 60 * 60 * 1000); 
+
+    return () => clearInterval(intervalId);
+  }, [state.calendarEvents, state.notifications]);
 
   const getMenuItem = (id: string) => state.menuItems.find(item => item.id === id);
   const getOrderForTable = (tableId: number) => {

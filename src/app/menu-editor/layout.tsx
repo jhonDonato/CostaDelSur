@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, BarChart3, Package, Utensils, Tag, Notebook } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Package, Utensils, Tag, Notebook, CalendarDays } from 'lucide-react';
 
 export default function MenuEditorLayout({
   children,
@@ -35,6 +35,7 @@ export default function MenuEditorLayout({
   if (user.role === 'admin') {
       navItems = [
         { href: '/admin', label: 'Reportes', icon: BarChart3 },
+        { href: '/admin/calendar', label: 'Calendario', icon: CalendarDays },
         { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
         { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
         { href: '/admin/inventory', label: 'Inventario', icon: Package },

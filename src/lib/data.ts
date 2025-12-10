@@ -1,6 +1,6 @@
 
 
-import type { User, MenuItem, Table, Order, Offer, Note } from '@/lib/types';
+import type { User, MenuItem, Table, Order, Offer, Note, CalendarEvent } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -176,6 +176,23 @@ export const initialNotes: Note[] = [
         createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000
     }
 ]
+
+export const initialCalendarEvents: CalendarEvent[] = [
+    {
+        id: 'event-1',
+        title: 'Revisión de Inventario General',
+        description: 'Conteo completo de todos los productos secos y refrigerados.',
+        date: new Date(new Date().setDate(new Date().getDate() + 3)),
+        time: '08:00',
+    },
+    {
+        id: 'event-2',
+        title: 'Capacitación de Personal',
+        description: 'Entrenamiento sobre el nuevo sistema de pedidos y atención al cliente.',
+        date: new Date(new Date().setDate(new Date().getDate() + 7)),
+        time: '16:00',
+    }
+];
 
 // Associate initial orders with tables
 initialOrders.forEach(order => {

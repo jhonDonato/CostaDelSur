@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { LayoutDashboard, Tag, Utensils, BarChart3, Package, Notebook } from 'lucide-react';
+import { LayoutDashboard, Tag, Utensils, BarChart3, Package, Notebook, CalendarDays } from 'lucide-react';
 
 export default function WaiterLayout({
   children,
@@ -39,6 +39,7 @@ export default function WaiterLayout({
   if (user.role === 'admin') {
     navItems = [
       { href: '/admin', label: 'Reportes', icon: BarChart3 },
+      { href: '/admin/calendar', label: 'Calendario', icon: CalendarDays },
       { href: '/menu-editor', label: 'Editor de Menú', icon: Utensils },
       { href: '/waiter/offers', label: 'Ofertas', icon: Tag },
       { href: '/admin/inventory', label: 'Inventario', icon: Package },

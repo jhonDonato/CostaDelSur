@@ -33,6 +33,7 @@ import { BellIcon } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { RealTimeClock } from './real-time-clock';
 
 interface NavItem {
   href: string;
@@ -55,7 +56,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
   const unreadNotifications = notifications.filter(n => !n.read);
 
   const checkIsActive = (itemHref: string) => {
-    // Only exact match should be active.
+    // Exact match is active.
     return pathname === itemHref;
   }
 
@@ -114,6 +115,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
         <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
           <SidebarTrigger />
           <div className="flex items-center gap-4">
+             <RealTimeClock />
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">

@@ -63,3 +63,11 @@ export type Note = {
     content: string;
     createdAt: number;
 }
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  description?: string;
+  date: Date;
+  time: string;
+};
