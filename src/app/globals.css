@@ -107,6 +107,21 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-}
+  .reservation-calendar .rdp-day_selected {
+    background-color: hsl(142.1 76.2% 36.3%) !important;
+    color: hsl(210 40% 98%) !important;
+  }
+   .reservation-calendar .rdp-day_today {
+    background-color: hsl(142.1 76.2% 36.3% / 0.2) !important;
+    color: hsl(142.1 76.2% 36.3%) !important;
+  }
 
-    
+  .admin-calendar .rdp-day_selected {
+      background-color: hsl(var(--primary)) !important;
+      color: hsl(var(--primary-foreground)) !important;
+  }
+  .admin-calendar .rdp-day_today {
+      background-color: hsl(var(--primary) / 0.2) !important;
+      color: hsl(var(--primary)) !important;
+  }
+}

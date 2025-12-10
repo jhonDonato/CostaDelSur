@@ -177,6 +177,7 @@ export default function CalendarPage() {
                                         disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                                         initialFocus
                                         locale={es}
+                                        className="admin-calendar"
                                     />
                                     </PopoverContent>
                                 </Popover>
@@ -270,5 +271,3 @@ export default function CalendarPage() {
     </TooltipProvider>
   );
 }
-
-    
