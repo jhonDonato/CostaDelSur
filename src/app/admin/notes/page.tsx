@@ -194,7 +194,7 @@ export default function NotesPage() {
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button size="icon" variant="destructive" onClick={() => setNoteToDelete(note.id)}>
+                                                <Button size="icon" variant="outline" onClick={() => setNoteToDelete(note.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                                     <Trash2 className="h-4 w-4"/>
                                                     <span className="sr-only">Eliminar Nota</span>
                                                 </Button>
