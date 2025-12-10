@@ -24,7 +24,9 @@ type Action =
   | { type: 'CALL_WAITER'; payload: { tableId: number } }
   | { type: 'UPDATE_TABLE_STATUS'; payload: { tableId: number; status: TableStatus, orderId?: string | null } }
   | { type: 'CREATE_ORDER'; payload: { tableId: number; items: OrderItem[]; estimatedDeliveryTime: number } }
+  | { type: 'ADD_ITEMS_TO_ORDER'; payload: { orderId: string; items: OrderItem[] } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
+  | { type: 'MARK_EXTRA_AS_DELIVERED', payload: { orderId: string, menuItemId: string } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
   | { type: 'UPDATE_MENU_ITEM'; payload: Partial<MenuItem> & { id: string } }
@@ -79,12 +81,12 @@ const createReducer = (toast: (options: { title: string, description: string, va
       const newOrder: Order = {
         id: `order-${Date.now()}`,
         tableId: action.payload.tableId,
-        items: action.payload.items,
+        items: action.payload.items.map(item => ({...item, status: 'original'})),
         status: 'pending',
         createdAt: Date.now(),
+        lastUpdatedAt: Date.now(),
         estimatedDeliveryTime: action.payload.estimatedDeliveryTime,
       };
-      // When a new order is created, also clear the orderId from the table if it was occupied
       const newTables = state.tables.map(table =>
           table.id === action.payload.tableId ? { ...table, status: 'occupied', orderId: newOrder.id } : table
       );
@@ -93,6 +95,26 @@ const createReducer = (toast: (options: { title: string, description: string, va
         ...state,
         orders: [newOrder, ...state.orders],
         tables: newTables
+      };
+    }
+    case 'ADD_ITEMS_TO_ORDER': {
+      return {
+        ...state,
+        orders: state.orders.map(order => {
+          if (order.id === action.payload.orderId) {
+            const newItems = [...order.items];
+            action.payload.items.forEach(newItem => {
+              const existingItemIndex = newItems.findIndex(i => i.menuItemId === newItem.menuItemId && i.status === 'extra' && !i.delivered);
+              if (existingItemIndex > -1) {
+                newItems[existingItemIndex].quantity += newItem.quantity;
+              } else {
+                newItems.push({ ...newItem, status: 'extra', delivered: false });
+              }
+            });
+            return { ...order, items: newItems, lastUpdatedAt: Date.now() };
+          }
+          return order;
+        }),
       };
     }
     case 'UPDATE_ORDER_STATUS': {
@@ -117,7 +139,6 @@ const createReducer = (toast: (options: { title: string, description: string, va
          }
       }
       
-      // When order is delivered, clear its delivery timer
       if(action.payload.status === 'delivered' && order) {
           if (order.deliveryTimerId) {
             clearTimeout(order.deliveryTimerId);
@@ -134,12 +155,29 @@ const createReducer = (toast: (options: { title: string, description: string, va
         notifications: newNotifications,
       };
     }
+    case 'MARK_EXTRA_AS_DELIVERED': {
+        return {
+            ...state,
+            orders: state.orders.map(order => {
+                if (order.id === action.payload.orderId) {
+                    return {
+                        ...order,
+                        items: order.items.map(item => 
+                            (item.menuItemId === action.payload.menuItemId && item.status === 'extra') 
+                            ? { ...item, delivered: true } 
+                            : item
+                        ),
+                    };
+                }
+                return order;
+            })
+        }
+    }
     case 'UPDATE_STOCK': {
         let newNotifications = state.notifications;
         const menuItem = state.menuItems.find(item => item.id === action.payload.menuItemId);
         if (menuItem && action.payload.newStock > 0 && action.payload.newStock <= 5) {
              const notifId = `notif-stock-${menuItem.id}`;
-             // Avoid duplicate low stock notification
              if (!state.notifications.some(n => n.id === notifId)) {
                 newNotifications = [{
                     id: notifId,
@@ -174,7 +212,6 @@ const createReducer = (toast: (options: { title: string, description: string, va
                 ),
             };
         } else {
-            // This is a new item
             const newItem: MenuItem = {
               id,
               name: data.name || '',
@@ -201,7 +238,7 @@ const createReducer = (toast: (options: { title: string, description: string, va
                 ),
             };
         }
-        return { // Add new offer
+        return { 
             ...state,
             offers: [...state.offers, action.payload],
         };
@@ -302,7 +339,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [processedNotifications, setProcessedNotifications] = useState<Set<string>>(new Set());
 
-  // Function to handle Text-to-Speech conversion and queueing
   const playVoiceNotification = useCallback(async (text: string) => {
       try {
           const { media } = await textToSpeech(text);
@@ -314,7 +350,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       }
   }, []);
 
-  // Effect to play audio from the queue
   useEffect(() => {
     if (audioQueue.length > 0 && !isPlaying) {
       setIsPlaying(true);
@@ -325,7 +360,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         setAudioQueue(prev => prev.slice(1));
         setIsPlaying(false);
       };
-      audio.onerror = (e) => { // Handle potential audio play errors
+      audio.onerror = (e) => { 
         console.error("Error playing audio.", e);
         setAudioQueue(prev => prev.slice(1));
         setIsPlaying(false);
@@ -333,7 +368,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     }
   }, [audioQueue, isPlaying]);
 
-  // Effect for unread notifications
   useEffect(() => {
     state.notifications.forEach(n => {
         if (!processedNotifications.has(n.id) && !n.read) {
@@ -343,7 +377,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     });
   }, [state.notifications, playVoiceNotification, processedNotifications]);
   
-  // Effect for order delivery timers
   useEffect(() => {
     state.orders.forEach(order => {
         if (order.status === 'preparing' && !order.deliveryTimerId) {
@@ -364,7 +397,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         }
     });
 
-    // Cleanup timers
     return () => {
         state.orders.forEach(order => {
             if (order.deliveryTimerId) {
@@ -374,7 +406,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     };
   }, [state.orders]);
 
-  // Effect for calendar event reminders
   useEffect(() => {
     const checkEvents = () => {
         const now = new Date();
@@ -398,7 +429,6 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    // Check once on load and then every hour
     checkEvents();
     const intervalId = setInterval(checkEvents, 60 * 60 * 1000); 
 

@@ -20,14 +20,17 @@ export type MenuItem = {
 export type OrderItem = {
   menuItemId: string;
   quantity: number;
+  status: 'original' | 'extra';
+  delivered?: boolean; // Only for 'extra' items
 };
 
 export type Order = {
-  id: string;
+  id:string;
   tableId: number;
   items: OrderItem[];
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: number;
+  lastUpdatedAt: number;
   estimatedDeliveryTime: number; // in minutes
   deliveryTimerId?: number; // Store timer ID
 };
