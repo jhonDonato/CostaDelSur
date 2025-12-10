@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Marisquería Online',
+  title: 'Costa Del Sur',
   description: 'Gestión digital para restaurantes en la playa.',
 };
 

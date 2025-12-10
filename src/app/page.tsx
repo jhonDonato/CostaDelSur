@@ -123,7 +123,7 @@ export default function HomePage() {
   }, {} as Record<MenuItem['category'], MenuItem[]>);
 
   const handleInfoClick = () => {
-    const message = "¡Hola! Quisiera más información sobre la marisquería.";
+    const message = "¡Hola! Quisiera más información sobre Costa Del Sur.";
     const whatsappUrl = `https://wa.me/51927325659?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -139,7 +139,7 @@ export default function HomePage() {
                 </div>
                 <Link href="/" className="flex flex-col items-center">
                     <Logo className="h-10 w-10 text-primary" />
-                    <span className="text-xl font-bold tracking-tighter">Marisquería</span>
+                    <span className="text-xl font-bold tracking-tighter">Costa Del Sur</span>
                 </Link>
                 <div className="flex items-center gap-4">
                      <Link href="/login" passHref>
@@ -339,7 +339,7 @@ export default function HomePage() {
 
        <footer className="bg-card py-8 border-t">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Marisquería Online. Todos los derechos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Costa Del Sur. Todos los derechos reservados.</p>
             <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (+51) 927325659</p>
         </div>
       </footer>

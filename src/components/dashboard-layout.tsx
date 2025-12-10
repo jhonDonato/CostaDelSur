@@ -79,7 +79,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
-            <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">Marisquería</span>
+            <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">Costa Del Sur</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>

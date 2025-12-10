@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('marisqueria-user');
+    const storedUser = localStorage.getItem('costa-del-sur-user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (foundUser) {
       setUser(foundUser);
-      localStorage.setItem('marisqueria-user', JSON.stringify(foundUser));
+      localStorage.setItem('costa-del-sur-user', JSON.stringify(foundUser));
       switch (foundUser.role) {
         case 'admin':
           router.push('/admin');
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('marisqueria-user');
+    localStorage.removeItem('costa-del-sur-user');
     router.push('/login');
   }, [router]);
 

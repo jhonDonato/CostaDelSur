@@ -226,7 +226,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
             <div className="p-4 border rounded-lg">
                 <div className="text-center mb-4">
                     <h3 className="text-lg font-semibold">Boleta de Venta</h3>
-                    <p className="text-sm text-muted-foreground">Marisquería Online</p>
+                    <p className="text-sm text-muted-foreground">Costa Del Sur</p>
                 </div>
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between"><span>Mesa:</span><span>{orderToDisplay.tableId}</span></div>

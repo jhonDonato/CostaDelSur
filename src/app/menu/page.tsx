@@ -135,7 +135,7 @@ function CustomerMenuPageContent() {
                 </div>
                 <Link href="/" className="flex flex-col items-center">
                     <Logo className="h-10 w-10 text-primary" />
-                    <span className="text-xl font-bold tracking-tighter">Marisquería</span>
+                    <span className="text-xl font-bold tracking-tighter">Costa Del Sur</span>
                 </Link>
                 <div className="flex items-center gap-4">
                     {tableQuery && (
@@ -246,7 +246,7 @@ function CustomerMenuPageContent() {
 
       <footer className="bg-card py-8 mt-16 border-t">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Marisquería Online. Todos los derechos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Costa Del Sur. Todos los derechos reservados.</p>
             <p className="mt-2 text-sm">Av. del Mar 123, Playa Hermosa | Tel: (+51) 927325659</p>
         </div>
       </footer>
