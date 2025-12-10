@@ -195,30 +195,35 @@ const createReducer = (toast: (options: { title: string, description: string, va
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
     case 'UPDATE_MENU_ITEM': {
-        const { id, ...data } = action.payload;
-        const exists = state.menuItems.some(item => item.id === id);
-        if (exists) {
-            return {
-                ...state,
-                menuItems: state.menuItems.map(item =>
-                    item.id === id ? { ...item, ...data } : item
-                ),
-            };
-        } else {
-            const newItem: MenuItem = {
-              id,
-              name: data.name || '',
-              description: data.description || '',
-              price: data.price || 0,
-              category: data.category || 'Platos Fuertes',
-              stock: data.stock || 0,
-              image: data.image || ''
-            };
-            return {
-                ...state,
-                menuItems: [...state.menuItems, newItem],
-            };
-        }
+      const { id, ...data } = action.payload;
+      if (!id) return state; // Should not happen with validation
+  
+      const exists = state.menuItems.some(item => item.id === id);
+  
+      if (exists) {
+        // This is an update to an existing item
+        return {
+          ...state,
+          menuItems: state.menuItems.map(item =>
+            item.id === id ? { ...item, ...data } : item
+          ),
+        };
+      } else {
+        // This is a new item
+        const newItem: MenuItem = {
+          id: id, // The ID is generated in the form e.g., `new-${Date.now()}`
+          name: data.name || '',
+          description: data.description || '',
+          price: data.price || 0,
+          category: data.category || 'Platos a la Carta',
+          stock: data.stock || 0,
+          image: data.image || '',
+        };
+        return {
+          ...state,
+          menuItems: [...state.menuItems, newItem],
+        };
+      }
     }
      case 'UPDATE_OFFER': {
         const { id, ...data } = action.payload;

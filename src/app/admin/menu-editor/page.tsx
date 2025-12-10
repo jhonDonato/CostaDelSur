@@ -86,7 +86,7 @@ export default function MenuEditorPage() {
         name: '',
         description: '',
         price: 0,
-        category: 'Platos Fuertes',
+        category: 'Platos a la Carta',
         stock: 10,
         image: 'https://picsum.photos/seed/placeholder/600/400',
         published: true,
