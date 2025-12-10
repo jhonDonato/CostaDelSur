@@ -51,6 +51,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [deliveryTime, setDeliveryTime] = useState('15');
   const [view, setView] = useState<'order' | 'receipt'>('order');
+  const [activeCategory, setActiveCategory] = useState<string | undefined>();
+
 
   const existingOrder = getOrderForTable(tableId);
 
@@ -108,6 +110,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     if (!open) {
       setView('order'); // Reset view on close
       setCurrentOrderItems([]);
+      setActiveCategory(undefined);
     }
     onOpenChange(open);
   }
@@ -267,20 +270,37 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-      <ScrollArea className="h-full">
-        <div className="flex h-full flex-col px-6 pt-2 pb-6">
-            <Accordion type="multiple" className="w-full">
+      <div className="h-full flex flex-col">
+        <ScrollArea className="flex-1">
+          <div className="p-6">
+            <Accordion 
+                type="single" 
+                collapsible 
+                className="w-full" 
+                value={activeCategory}
+                onValueChange={setActiveCategory}
+            >
               {orderCategories.map(category => {
                 if (!menuByCategory[category]) return null;
+                const isActive = activeCategory === category;
                 return (
-                  <AccordionItem value={category} key={category}>
-                    <AccordionTrigger className="hover:bg-primary/10 hover:no-underline">
+                  <AccordionItem 
+                    value={category} 
+                    key={category} 
+                    className={cn('mb-2 rounded-lg border-none transition-colors', { 'bg-primary/10': isActive })}
+                  >
+                    <AccordionTrigger 
+                        className={cn(
+                            "hover:bg-primary/10 rounded-lg px-4 py-3 hover:no-underline",
+                             { 'bg-primary/10': isActive }
+                        )}
+                    >
                       {category}
                     </AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="p-2">
                       <div className="space-y-2 pt-2">
                         {menuByCategory[category].map(item => (
-                          <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg">
+                          <Card key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                             <div>
                               <p className="font-medium">{item.name}</p>
                               <p className="text-sm text-muted-foreground">S/.{item.price.toFixed(2)}</p>
@@ -296,29 +316,34 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 )
               })}
             </Accordion>
-             <div className="mt-6 border-t pt-6 space-y-4">
+          </div>
+        </ScrollArea>
+        <div className="p-6 border-t bg-background">
+             <div className="space-y-4">
                 <h3 className="font-semibold">Resumen del Pedido</h3>
                 {currentOrderItems.length > 0 ? (
                   <>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {currentOrderItems.map(orderItem => {
-                          const menuItem = getMenuItem(orderItem.menuItemId);
-                          if (!menuItem) return null;
-                          return (
-                            <div key={orderItem.menuItemId} className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium text-sm">{menuItem.name}</p>
-                                <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                    </div>
+                    <ScrollArea className="max-h-40">
+                        <div className="space-y-2 pr-4">
+                            {currentOrderItems.map(orderItem => {
+                              const menuItem = getMenuItem(orderItem.menuItemId);
+                              if (!menuItem) return null;
+                              return (
+                                <div key={orderItem.menuItemId} className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-medium text-sm">{menuItem.name}</p>
+                                    <p className="text-xs text-muted-foreground">{orderItem.quantity} x S/.{menuItem.price.toFixed(2)}</p>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => addToOrder(menuItem)}><Plus className="h-4 w-4"/></Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => decreaseQuantity(orderItem.menuItemId)}><Minus className="h-4 w-4"/></Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeFromOrder(orderItem.menuItemId)}><Trash2 className="h-4 w-4"/></Button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                        </div>
+                    </ScrollArea>
                     <div className="font-bold text-lg flex justify-between pt-2 border-t">
                       <span>Total:</span>
                       <span>S/.{newOrderTotal.toFixed(2)}</span>
@@ -337,13 +362,13 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 </Button>
               </div>
           </div>
-      </ScrollArea>
+      </div>
     )
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-lg w-[90vw] flex flex-col p-0">
+      <SheetContent className="sm:max-w-lg w-full flex flex-col p-0 overflow-y-auto">
         <SheetHeader className="p-6 pb-2 border-b">
           <SheetTitle>Mesa {tableId}</SheetTitle>
           <SheetDescription>
@@ -416,5 +441,7 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
 
     
