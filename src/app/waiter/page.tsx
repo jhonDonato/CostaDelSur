@@ -380,7 +380,7 @@ export default function WaiterDashboardPage() {
             <div className="flex gap-2">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'ADD_TABLE'})}>
+                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'ADD_TABLE'})} disabled={state.tables.length >= 15}>
                             <PlusCircle />
                         </Button>
                     </TooltipTrigger>
@@ -390,7 +390,7 @@ export default function WaiterDashboardPage() {
                 </Tooltip>
                  <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_TABLE'})} disabled={state.tables.length === 0}>
+                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_TABLE'})} disabled={state.tables.length <= 8}>
                             <MinusCircle />
                         </Button>
                     </TooltipTrigger>
@@ -422,7 +422,3 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
-
-    
-
-    

@@ -5,9 +5,10 @@
 import type { ReactNode } from 'react';
 import { createContext, useState, useReducer, useEffect, useCallback } from 'react';
 import type { Order, Table, MenuItem, Notification, TableStatus, OrderItem, Offer, Note, CalendarEvent } from '@/lib/types';
-import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes } from '@/lib/data';
+import { tables as initialTables, menuItems as initialMenuItems, initialOrders, offers as initialOffers, initialNotes, initialCalendarEvents } from '@/lib/data';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { differenceInCalendarDays } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 type RestaurantState = {
   tables: Table[];
@@ -37,7 +38,7 @@ type Action =
   | { type: 'ADD_TABLE' }
   | { type: 'REMOVE_TABLE' };
 
-const reducer = (state: RestaurantState, action: Action): RestaurantState => {
+const createReducer = (toast: (options: { title: string, description: string, variant?: 'default' | 'destructive' }) => void) => (state: RestaurantState, action: Action): RestaurantState => {
   switch (action.type) {
     case 'ADD_NOTIFICATION':
         // Ensure no duplicate notifications are added
@@ -231,6 +232,14 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
             calendarEvents: state.calendarEvents.filter(e => e.id !== action.payload.eventId)
         };
     case 'ADD_TABLE': {
+        if (state.tables.length >= 15) {
+            toast({
+                title: "Límite alcanzado",
+                description: "No se pueden agregar más de 15 mesas.",
+                variant: "destructive"
+            });
+            return state;
+        }
         const newTableId = state.tables.length > 0 ? Math.max(...state.tables.map(t => t.id)) + 1 : 1;
         const newTable: Table = { id: newTableId, status: 'free' };
         return {
@@ -239,11 +248,21 @@ const reducer = (state: RestaurantState, action: Action): RestaurantState => {
         };
     }
     case 'REMOVE_TABLE': {
-        if (state.tables.length === 0) return state;
+        if (state.tables.length <= 8) {
+             toast({
+                title: "Límite alcanzado",
+                description: "No se pueden tener menos de 8 mesas.",
+                variant: "destructive"
+            });
+            return state;
+        }
         const tableToRemove = state.tables[state.tables.length - 1];
-        // Ensure we don't remove a table that is occupied or needs attention
         if (tableToRemove.status !== 'free') {
-            // Optionally, add a notification that the table can't be removed
+            toast({
+                title: "Acción no permitida",
+                description: "No se puede eliminar una mesa que está ocupada o requiere atención.",
+                variant: "destructive"
+            });
             return state;
         }
         return {
@@ -273,11 +292,12 @@ const initialState: RestaurantState = {
   notifications: [],
   offers: initialOffers,
   notes: initialNotes,
-  calendarEvents: [],
+  calendarEvents: initialCalendarEvents,
 };
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const { toast } = useToast();
+  const [state, dispatch] = useReducer(createReducer(toast), initialState);
   const [audioQueue, setAudioQueue] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [processedNotifications, setProcessedNotifications] = useState<Set<string>>(new Set());
@@ -398,5 +418,3 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
-
-    
