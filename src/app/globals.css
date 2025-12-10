@@ -106,4 +106,19 @@
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .admin-calendar .rdp-day_selected {
+    background-color: hsl(var(--primary) / 0.9);
+    color: hsl(var(--primary-foreground));
+  }
+  .admin-calendar .rdp-day_selected:hover, .admin-calendar .rdp-day_selected:focus {
+    background-color: hsl(var(--primary));
+  }
+  .admin-calendar .rdp-day_today {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary));
+    font-weight: bold;
+  }
 }
+
+    
