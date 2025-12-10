@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle, Soup, GlassWater, Cake, Pizza } from 'lucide-react';
+import { Plus, Minus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { OrderItem, MenuItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -265,9 +264,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     const newOrderTotal = getTotal(currentOrderItems);
 
     return (
-      <ScrollArea className="h-full pr-6 -mr-6">
         <div className="flex flex-col justify-between h-full">
-            <div>
+            <ScrollArea className="flex-grow pr-6 -mr-6">
                 {orderCategories.map(category => {
                     if (!menuByCategory[category]) return null;
                     return (
@@ -289,15 +287,15 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                         </div>
                     )
                 })}
-            </div>
-
+            </ScrollArea>
+            
             <div className="mt-auto border-t -mx-6 px-6 pt-4 space-y-4 bg-background sticky bottom-0">
-                <div>
+                <ScrollArea className="max-h-48">
                     <h3 className="font-semibold mb-2">Resumen del Pedido</h3>
                     {currentOrderItems.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">Añada items al pedido.</p>
                     ) : (
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                        <div className="space-y-2">
                         {currentOrderItems.map(orderItem => {
                             const menuItem = getMenuItem(orderItem.menuItemId);
                             if (!menuItem) return null;
@@ -323,7 +321,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                         })}
                         </div>
                     )}
-                </div>
+                </ScrollArea>
                  {currentOrderItems.length > 0 && (
                     <div className="font-bold text-lg flex justify-between pt-2 border-t">
                         <span>Total:</span>
@@ -340,7 +338,6 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
                 </Button>
             </div>
         </div>
-      </ScrollArea>
     )
   }
 
