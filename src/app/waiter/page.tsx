@@ -274,8 +274,8 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto pr-2 -mr-6">
-                <Accordion type="multiple" defaultValue={['Entradas']} className="w-full space-y-2">
+            <div className="flex-1 overflow-y-auto -mr-6 pr-6 space-y-2">
+                 <Accordion type="multiple" defaultValue={['Entradas']} className="w-full">
                     {orderCategories.map(category => {
                       if (!menuByCategory[category]) return null;
                       const config = categoryConfig[category];
@@ -433,5 +433,7 @@ export default function WaiterDashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
 
     
