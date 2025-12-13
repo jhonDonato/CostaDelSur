@@ -56,7 +56,6 @@ export default function OffersPage() {
       title: "Ofertas Actualizadas",
       description: "Los cambios en las ofertas han sido guardados.",
     });
-    form.reset({ offers: data.offers });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {

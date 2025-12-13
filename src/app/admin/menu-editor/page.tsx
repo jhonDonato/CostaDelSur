@@ -51,12 +51,7 @@ export default function MenuEditorPage() {
   });
   
   useEffect(() => {
-    form.reset({
-      menuItems: state.menuItems.map(item => ({
-        ...item,
-        published: item.stock !== undefined ? item.stock > 0 : true
-      }))
-    });
+    form.reset({ menuItems: state.menuItems });
   }, [state.menuItems, form]);
 
 
