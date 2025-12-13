@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from 'react';
-import { useAppState } from '@/hooks/use-app-state';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,17 +9,22 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { PackageOpen, Save, X } from 'lucide-react';
 import type { MenuItem } from '@/lib/types';
+import * as api from '@/lib/api';
 
 export default function InventoryPage() {
-  const { state, dispatch } = useAppState();
   const { toast } = useToast();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editedStocks, setEditedStocks] = useState<Record<string, number | string>>({});
+
+  useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+  }, []);
 
   const handleStockChange = (itemId: string, value: string) => {
     setEditedStocks(prev => ({ ...prev, [itemId]: value }));
   };
 
-  const handleSaveStock = (itemId: string) => {
+  const handleSaveStock = async (itemId: string) => {
     const newStockStr = editedStocks[itemId];
     if (newStockStr === undefined || newStockStr === '') return;
     
@@ -34,27 +38,33 @@ export default function InventoryPage() {
       return;
     }
 
-    dispatch({ type: 'UPDATE_STOCK', payload: { menuItemId: itemId, newStock } });
-    toast({
-      title: "Inventario Actualizado",
-      description: `El stock para el ítem ha sido actualizado a ${newStock}.`,
-    });
-    setEditedStocks(prev => {
-      const newState = { ...prev };
-      delete newState[itemId];
-      return newState;
-    });
+    const updatedItem = await api.updateMenuItemStock(itemId, newStock);
+    if (updatedItem) {
+        setMenuItems(prev => prev.map(item => item.id === itemId ? updatedItem : item));
+        toast({
+          title: "Inventario Actualizado",
+          description: `El stock para el ítem ha sido actualizado a ${newStock}.`,
+        });
+        setEditedStocks(prev => {
+          const newState = { ...prev };
+          delete newState[itemId];
+          return newState;
+        });
+    } else {
+        toast({ title: "Error", description: "No se pudo actualizar el stock.", variant: "destructive" });
+    }
   };
   
-  const handleToggleAvailability = (item: MenuItem) => {
-    const currentStock = item.stock;
-    const newStock = currentStock > 0 ? 0 : 10; // Simple toggle logic, could be more sophisticated
-    
-    dispatch({ type: 'UPDATE_STOCK', payload: { menuItemId: item.id, newStock } });
-     toast({
-      title: "Disponibilidad Cambiada",
-      description: `${item.name} ahora está ${newStock > 0 ? 'disponible' : 'no disponible'}.`,
-    });
+  const handleToggleAvailability = async (item: MenuItem) => {
+    const newStock = item.stock > 0 ? 0 : 10; // Simple toggle logic
+    const updatedItem = await api.updateMenuItemStock(item.id, newStock);
+     if (updatedItem) {
+        setMenuItems(prev => prev.map(i => i.id === item.id ? updatedItem : i));
+        toast({
+          title: "Disponibilidad Cambiada",
+          description: `${item.name} ahora está ${newStock > 0 ? 'disponible' : 'no disponible'}.`,
+        });
+     }
   }
 
   const cancelEdit = (itemId: string) => {
@@ -78,7 +88,7 @@ export default function InventoryPage() {
         <CardHeader>
           <CardTitle>Control de Platos</CardTitle>
           <CardDescription>
-            Gestiona la disponibilidad y las existencias de cada plato. El sistema alertará por voz cuando el stock de un plato sea 5 o menos.
+            Gestiona la disponibilidad y las existencias de cada plato.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,7 +104,7 @@ export default function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {state.menuItems.map((item) => (
+              {menuItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.category}</TableCell>
@@ -136,6 +146,11 @@ export default function InventoryPage() {
               ))}
             </TableBody>
           </Table>
+            {menuItems.length === 0 && (
+                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                    <p className="text-muted-foreground">No hay platos en el menú para gestionar.</p>
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>

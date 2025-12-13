@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/providers/auth-provider';
-import { RestaurantProvider } from '@/providers/restaurant-state-provider';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
@@ -23,10 +22,8 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          <RestaurantProvider>
             {children}
             <Toaster />
-          </RestaurantProvider>
         </AuthProvider>
       </body>
     </html>

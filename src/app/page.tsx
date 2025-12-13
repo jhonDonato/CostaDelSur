@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Autoplay from "embla-carousel-autoplay";
@@ -9,7 +9,6 @@ import { Phone, Calendar, Clock, Users, User as UserIcon, MessageSquare, Tag } f
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useAppState } from '@/hooks/use-app-state';
 import { Logo } from '@/components/icons';
 import type { MenuItem, Offer } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -20,6 +19,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import * as api from '@/lib/api';
 
 
 function ReservationForm() {
@@ -108,14 +108,21 @@ function ReservationForm() {
 
 
 export default function HomePage() {
-  const { state } = useAppState();
-  const allAvailableItems = state.menuItems.filter(item => item.stock > 0);
-  const publishedOffers = state.offers.filter(offer => offer.published);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+  useEffect(() => {
+    api.getMenuItems().then(items => setMenuItems(items.filter(item => item.stock > 0)));
+    api.getOffers().then(offers => setOffers(offers.filter(offer => offer.published)));
+  }, []);
+
+  const allAvailableItems = menuItems;
+  const publishedOffers = offers;
 
   const categoriesInOrder: MenuItem['category'][] = ['Platos Fuertes', 'Platos a la Carta', 'Entradas', 'Bebidas', 'Postres'];
   
   const menuByCategory = categoriesInOrder.reduce((acc, category) => {
-    const items = state.menuItems.filter(item => item.category === category && item.stock > 0);
+    const items = allAvailableItems.filter(item => item.category === category);
     if (items.length > 0) {
       acc[category] = items;
     }
@@ -323,6 +330,12 @@ export default function HomePage() {
                   </Carousel>
               </div>
             ))}
+             {(allAvailableItems.length === 0 && publishedOffers.length === 0) && (
+                <div className="text-center py-20 border-2 border-dashed rounded-lg">
+                    <p className="text-muted-foreground">Nuestro menú y ofertas se están actualizando.</p>
+                    <p className="text-sm text-muted-foreground">Por favor, vuelva más tarde.</p>
+                </div>
+            )}
           </div>
       </section>
 

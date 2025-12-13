@@ -1,19 +1,21 @@
 "use client";
-
-import { useAppState } from '@/hooks/use-app-state';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, Clock, Check, ChefHat } from 'lucide-react';
-import type { Order, OrderStatus } from '@/lib/types';
+import type { Order, MenuItem } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as api from '@/lib/api';
 
-function OrderCard({ order }: { order: Order }) {
-  const { dispatch, getMenuItem } = useAppState();
+function OrderCard({ order, onUpdateStatus }: { order: Order; onUpdateStatus: (orderId: string, status: Order['status']) => void; }) {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-  const handleUpdateStatus = (newStatus: Order['status']) => {
-    dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { orderId: order.id, status: newStatus } });
-  };
+  useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+  }, []);
+
+  const getMenuItem = (id: string) => menuItems.find(item => item.id === id);
   
   const timeAgo = formatDistanceToNow(order.createdAt, { addSuffix: true, locale: es });
 
@@ -32,13 +34,13 @@ function OrderCard({ order }: { order: Order }) {
         </ul>
         <div className="flex gap-2">
           {order.status === 'pending' && (
-            <Button size="sm" className="w-full" onClick={() => handleUpdateStatus('preparing')}>
+            <Button size="sm" className="w-full" onClick={() => onUpdateStatus(order.id, 'preparing')}>
               <ChefHat className="mr-2 h-4 w-4" />
               Empezar
             </Button>
           )}
           {order.status === 'preparing' && (
-            <Button size="sm" className="w-full" onClick={() => handleUpdateStatus('ready')}>
+            <Button size="sm" className="w-full" onClick={() => onUpdateStatus(order.id, 'ready')}>
               <Check className="mr-2 h-4 w-4" />
               Marcar como Listo
             </Button>
@@ -62,12 +64,28 @@ const statusConfig: Record<Order['status'], { title: string, icon: React.Element
 
 
 export default function KitchenPage() {
-  const { state } = useAppState();
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    // In a real app, this would be a WebSocket subscription
+    const interval = setInterval(() => {
+        api.getOrders().then(setOrders);
+    }, 5000); // Poll every 5 seconds
+    api.getOrders().then(setOrders); // Initial fetch
+    return () => clearInterval(interval);
+  }, []);
   
+  const handleUpdateStatus = async (orderId: string, status: Order['status']) => {
+    const updatedOrder = await api.updateOrderStatus(orderId, status);
+    if(updatedOrder) {
+        setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+    }
+  }
+
   const relevantStatuses: Order['status'][] = ['pending', 'preparing', 'ready'];
 
   const ordersByStatus = relevantStatuses.reduce((acc, status) => {
-    acc[status] = state.orders.filter(order => order.status === status)
+    acc[status] = orders.filter(order => order.status === status)
       .sort((a, b) => a.createdAt - b.createdAt);
     return acc;
   }, {} as Record<Order['status'], Order[]>);
@@ -93,7 +111,7 @@ export default function KitchenPage() {
                     </div>
                     <div className="h-full overflow-y-auto">
                         {ordersByStatus[status].length > 0 ? (
-                            ordersByStatus[status].map(order => <OrderCard key={order.id} order={order} />)
+                            ordersByStatus[status].map(order => <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus}/>)
                         ) : (
                             <div className="text-center text-muted-foreground mt-8">
                                 <p>No hay pedidos en este estado.</p>

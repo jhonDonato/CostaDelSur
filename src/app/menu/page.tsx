@@ -1,14 +1,13 @@
 
 "use client";
 
-import React, { Suspense, useState, useMemo } from 'react';
+import React, { Suspense, useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Phone, Clock, AlertTriangle, Home, Utensils, User, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAppState } from '@/hooks/use-app-state';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
 import type { MenuItem } from '@/lib/types';
@@ -26,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import * as api from '@/lib/api';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
   const placeholder = PlaceHolderImages.find(p => p.imageUrl === item.image);
@@ -52,16 +51,18 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 }
 
 function CustomerMenuPageContent() {
-  const { state, dispatch } = useAppState();
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const tableQuery = searchParams.get('table');
 
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isCallAlertOpen, setIsCallAlertOpen] = useState(false);
   const [tableNumberInput, setTableNumberInput] = useState('');
   const [activeTab, setActiveTab] = useState('Entradas');
 
-  const { menuItems } = state;
+  useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+  }, []);
 
   const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
   
@@ -82,46 +83,25 @@ function CustomerMenuPageContent() {
   [menuByCategory, displayCategories]);
 
   const handleCallWaiter = () => {
-    if (tableQuery) {
-        const tableId = parseInt(tableQuery, 10);
-        if (isNaN(tableId)) {
-             toast({
-                title: "Error",
-                description: "Número de mesa inválido en la URL.",
-                variant: "destructive",
-            });
-            return;
-        }
-        dispatch({ type: 'CALL_WAITER', payload: { tableId } });
-        toast({
-            title: "Llamada Enviada",
-            description: `Un mesero atenderá la mesa ${tableId} pronto.`,
-            variant: "default",
-        });
-    } else {
+    const tableId = tableQuery ? parseInt(tableQuery, 10) : parseInt(tableNumberInput, 10);
+    
+    if(isNaN(tableId) || tableId <=0) {
         setIsCallAlertOpen(true);
+        return;
     }
-  };
-
-  const submitCallFromAlert = () => {
-    const tableId = parseInt(tableNumberInput, 10);
-    if (isNaN(tableId) || tableId <= 0) {
-      toast({
-        title: "Número de Mesa Inválido",
-        description: "Por favor, ingrese un número de mesa válido.",
-        variant: "destructive",
-      });
-      return;
-    }
-    dispatch({ type: 'CALL_WAITER', payload: { tableId } });
+    
+    api.callWaiter(tableId);
     toast({
-      title: "Llamada Enviada",
-      description: `Un mesero atenderá la mesa ${tableId} pronto.`,
-      variant: "default",
+        title: "Llamada Enviada",
+        description: `Un mesero atenderá la mesa ${tableId} pronto.`,
     });
     setIsCallAlertOpen(false);
     setTableNumberInput('');
   };
+  
+  const submitCallFromAlert = () => {
+      handleCallWaiter();
+  }
 
 
   return (

@@ -2,14 +2,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useAppState } from '@/hooks/use-app-state';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Send, Trash2, Utensils, BellRing, CircleUserRound, CheckCircle, Printer, Truck, PlusCircle, MinusCircle, Edit, FileX, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { OrderItem, MenuItem, Order } from '@/lib/types';
+import type { OrderItem, MenuItem, Order, Table } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import * as api from '@/lib/api';
 
 function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
   const statusConfig = {
@@ -55,12 +55,11 @@ function TableCard({ tableId, status, onSelect }: { tableId: number; status: str
   );
 }
 
-function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
-  const { state, dispatch, getMenuItem, getOrderForTable } = useAppState();
+function OrderSheet({ tableId, isOpen, onOpenChange, onOrderChange }: { tableId: number, isOpen: boolean, onOpenChange: (open: boolean) => void, onOrderChange: () => void }) {
   const { toast } = useToast();
   
-  const existingOrder = getOrderForTable(tableId);
-
+  const [existingOrder, setExistingOrder] = useState<Order | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [deliveryTime, setDeliveryTime] = useState('15');
   const [view, setView] = useState<'order' | 'receipt' | 'edit'>('order');
@@ -68,15 +67,25 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
 
   useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+  }, []);
+
+  const getMenuItem = (id: string) => menuItems.find(item => item.id === id);
+
+  useEffect(() => {
     if (isOpen) {
-        if (existingOrder) {
-            setView('order');
-        } else {
-            setView('order');
-            setCurrentOrderItems([]);
-        }
+        api.getOrderByTableId(tableId).then(order => {
+            if (order) {
+                setExistingOrder(order);
+                setView('order');
+            } else {
+                setExistingOrder(null);
+                setView('order');
+                setCurrentOrderItems([]);
+            }
+        });
     }
-  }, [isOpen, existingOrder]);
+  }, [isOpen, tableId]);
 
 
   const addToOrder = (item: MenuItem) => {
@@ -108,7 +117,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
   };
 
 
-  const submitOrder = () => {
+  const submitOrder = async () => {
     const time = parseInt(deliveryTime, 10);
     if (currentOrderItems.length === 0) {
         toast({ title: "Orden Vacía", description: "Agregue al menos un item para enviar el pedido.", variant: "destructive"});
@@ -118,15 +127,24 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         toast({ title: "Tiempo Inválido", description: "Por favor ingrese un tiempo de entrega válido.", variant: "destructive"});
         return;
     }
-
-    dispatch({type: 'CREATE_ORDER', payload: { tableId, items: currentOrderItems, estimatedDeliveryTime: time }});
-    toast({ title: "Pedido Enviado", description: `El pedido para la mesa ${tableId} ha sido enviado a la cocina.`});
-    onOpenChange(false);
+    
+    const newOrder = await api.createOrder({ tableId, items: currentOrderItems, estimatedDeliveryTime: time });
+    if(newOrder){
+        toast({ title: "Pedido Enviado", description: `El pedido para la mesa ${tableId} ha sido enviado a la cocina.`});
+        onOrderChange();
+        onOpenChange(false);
+    } else {
+        toast({ title: "Error", description: "No se pudo crear el pedido.", variant: "destructive"});
+    }
   };
   
-  const handleOpenChange = (open: boolean) => {
-    if (open && state.tables.find(t => t.id === tableId)?.status === 'needs-attention') {
-        dispatch({ type: 'UPDATE_TABLE_STATUS', payload: { tableId, status: 'occupied' } });
+  const handleOpenChange = async (open: boolean) => {
+    if (open) {
+        const table = await api.getTableById(tableId);
+        if (table && table.status === 'needs-attention') {
+            api.updateTableStatus(tableId, 'occupied');
+            onOrderChange();
+        }
     }
     if (!open) {
       setView('order');
@@ -136,13 +154,17 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     onOpenChange(open);
   }
 
-  const handleConfirmDelivery = () => {
+  const handleConfirmDelivery = async () => {
     if (existingOrder) {
-      dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { orderId: existingOrder.id, status: 'delivered' } });
-      toast({
-        title: "Pedido Entregado",
-        description: `El pedido de la mesa ${tableId} ha sido marcado como entregado.`
-      });
+      const updatedOrder = await api.updateOrderStatus(existingOrder.id, 'delivered');
+      if (updatedOrder) {
+          setExistingOrder(updatedOrder);
+          onOrderChange();
+          toast({
+            title: "Pedido Entregado",
+            description: `El pedido de la mesa ${tableId} ha sido marcado como entregado.`
+          });
+      }
     }
   };
 
@@ -152,13 +174,14 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     }
   };
 
-  const handlePayAndClose = () => {
+  const handlePayAndClose = async () => {
       if (existingOrder) {
         if (existingOrder.status !== 'delivered') {
-          dispatch({type: 'UPDATE_ORDER_STATUS', payload: {orderId: existingOrder.id, status: 'delivered'}});
+            await api.updateOrderStatus(existingOrder.id, 'delivered');
         }
-        dispatch({type: 'UPDATE_TABLE_STATUS', payload: {tableId: tableId, status: 'free', orderId: null}});
+        await api.updateTableStatus(tableId, 'free');
         toast({ title: "Mesa Liberada", description: `La mesa ${tableId} está libre y el pedido ha sido completado.` });
+        onOrderChange();
         onOpenChange(false);
       }
   }
@@ -174,24 +197,29 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
     setIsCancelAlertOpen(true);
   }
 
-  const confirmCancelOrder = () => {
+  const confirmCancelOrder = async () => {
      if (existingOrder) {
-        dispatch({ type: 'CANCEL_ORDER', payload: { orderId: existingOrder.id } });
+        await api.cancelOrder(existingOrder.id);
         toast({ title: "Pedido Cancelado", description: `El pedido de la mesa ${tableId} ha sido cancelado.` });
+        onOrderChange();
         onOpenChange(false);
      }
      setIsCancelAlertOpen(false);
   };
 
-  const handleUpdateOrder = () => {
+  const handleUpdateOrder = async () => {
     if (!existingOrder) return;
     if (currentOrderItems.length === 0) {
         toast({ title: "Orden Vacía", description: "No puedes dejar un pedido sin items. Cancela el pedido si es necesario.", variant: "destructive" });
         return;
     }
-    dispatch({ type: 'EDIT_ORDER', payload: { orderId: existingOrder.id, newItems: currentOrderItems } });
-    toast({ title: "Pedido Actualizado", description: `El pedido de la mesa ${tableId} ha sido actualizado.` });
-    setView('order');
+    const updatedOrder = await api.editOrder(existingOrder.id, currentOrderItems);
+    if(updatedOrder){
+        toast({ title: "Pedido Actualizado", description: `El pedido de la mesa ${tableId} ha sido actualizado.` });
+        setExistingOrder(updatedOrder);
+        onOrderChange();
+        setView('order');
+    }
   };
 
   const getTotal = (items: OrderItem[]) => {
@@ -201,7 +229,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
       }, 0);
   };
 
-  const menuByCategory = useMemo(() => state.menuItems.reduce((acc, item) => {
+  const menuByCategory = useMemo(() => menuItems.reduce((acc, item) => {
     if (item.stock > 0) {
         if (!acc[item.category]) {
             acc[item.category] = [];
@@ -209,7 +237,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
         acc[item.category].push(item);
     }
     return acc;
-  }, {} as Record<MenuItem['category'], MenuItem[]>), [state.menuItems]);
+  }, {} as Record<MenuItem['category'], MenuItem[]>), [menuItems]);
 
   const orderCategories: (keyof typeof menuByCategory)[] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
 
@@ -467,8 +495,34 @@ function OrderSheet({ tableId, isOpen, onOpenChange }: { tableId: number, isOpen
 
 
 export default function WaiterDashboardPage() {
-  const { state, dispatch } = useAppState();
+  const [tables, setTables] = useState<Table[]>([]);
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
+
+  const fetchTables = () => {
+      api.getTables().then(setTables);
+  }
+  
+  useEffect(() => {
+    const interval = setInterval(fetchTables, 5000); // Poll every 5 seconds
+    fetchTables(); // Initial fetch
+    return () => clearInterval(interval);
+  }, []);
+  
+  const handleDataChange = () => {
+      fetchTables();
+  }
+
+  const addTable = async () => {
+    if (tables.length >= 15) return;
+    await api.addTable();
+    fetchTables();
+  }
+
+  const removeTable = async () => {
+    if (tables.length <= 8) return;
+    await api.removeTable();
+    fetchTables();
+  }
   
   return (
     <TooltipProvider>
@@ -481,7 +535,7 @@ export default function WaiterDashboardPage() {
             <div className="flex gap-2">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'ADD_TABLE'})} disabled={state.tables.length >= 15}>
+                        <Button variant="outline" size="icon" onClick={addTable} disabled={tables.length >= 15}>
                             <PlusCircle />
                         </Button>
                     </TooltipTrigger>
@@ -491,7 +545,7 @@ export default function WaiterDashboardPage() {
                 </Tooltip>
                  <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_TABLE'})} disabled={state.tables.length <= 8}>
+                        <Button variant="outline" size="icon" onClick={removeTable} disabled={tables.length <= 8}>
                             <MinusCircle />
                         </Button>
                     </TooltipTrigger>
@@ -502,7 +556,7 @@ export default function WaiterDashboardPage() {
             </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {state.tables.map((table) => (
+            {tables.map((table) => (
             <TableCard
                 key={table.id}
                 tableId={table.id}
@@ -517,13 +571,10 @@ export default function WaiterDashboardPage() {
                 tableId={selectedTable}
                 isOpen={selectedTable !== null} 
                 onOpenChange={(open) => !open && setSelectedTable(null)} 
+                onOrderChange={handleDataChange}
             />
         )}
     </div>
     </TooltipProvider>
   );
 }
-
-    
-
-    

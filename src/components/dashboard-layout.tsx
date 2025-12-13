@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/icons';
 import { LogOut, BellIcon, PhoneIncoming } from 'lucide-react';
-import { useAppState } from '@/hooks/use-app-state';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +32,9 @@ import { Badge } from './ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { RealTimeClock } from './real-time-clock';
+import * as api from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { Notification } from '@/lib/types';
 
 interface NavItem {
   href: string;
@@ -48,29 +50,40 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
   const { user, logout, isLoading } = useAuth();
-  const { state: { notifications }, dispatch } = useAppState();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const router = useRouter();
   const pathname = usePathname();
 
-  const unreadNotifications = notifications.filter(n => !n.read);
+  const fetchNotifications = () => {
+    api.getNotifications().then(setNotifications);
+  }
+
+  useEffect(() => {
+    const interval = setInterval(fetchNotifications, 5000);
+    fetchNotifications();
+    return () => clearInterval(interval);
+  }, []);
 
   const checkIsActive = (itemHref: string) => {
-    // Exact match is active.
     return pathname === itemHref;
   }
   
-  const handleAcceptCall = (e: React.MouseEvent, tableId: number, notificationId: string) => {
+  const handleAcceptCall = async (e: React.MouseEvent, tableId: number, notificationId: string) => {
     e.stopPropagation();
-    dispatch({ type: 'ACCEPT_CALL', payload: { tableId, notificationId } });
+    await api.acceptCall(tableId, notificationId);
+    fetchNotifications();
   };
+
+  const dismissNotification = async (notificationId: string) => {
+    await api.dismissNotification(notificationId);
+    fetchNotifications();
+  }
 
   if (isLoading) {
     return <div>Cargando...</div>;
   }
 
   if (!user) {
-    // This should be handled by a higher-level component or hook,
-    // but as a fallback, we can redirect.
     if (typeof window !== 'undefined') {
       router.push('/login');
     }
@@ -165,7 +178,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
                  {notifications.length > 0 && (
                     <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => notifications.forEach(n => dispatch({type: 'DISMISS_NOTIFICATION', payload: {notificationId: n.id}}))}>
+                    <DropdownMenuItem onSelect={() => notifications.forEach(n => dismissNotification(n.id))}>
                         Limpiar todo
                     </DropdownMenuItem>
                     </>
@@ -201,5 +214,3 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
     </SidebarProvider>
   );
 }
-
-    

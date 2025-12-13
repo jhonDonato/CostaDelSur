@@ -14,7 +14,6 @@ export const menuItems: MenuItem[] = [];
 
 export const offers: Offer[] = [];
 
-
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
   status: 'free',
@@ -25,12 +24,3 @@ export const initialOrders: Order[] = [];
 export const initialNotes: Note[] = []
 
 export const initialCalendarEvents: CalendarEvent[] = [];
-
-// Associate initial orders with tables
-initialOrders.forEach(order => {
-  const table = tables.find(t => t.id === order.tableId);
-  if(table) {
-    table.orderId = order.id;
-    table.status = 'occupied';
-  }
-});

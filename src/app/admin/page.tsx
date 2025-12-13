@@ -1,47 +1,52 @@
 
 "use client";
 
+import { useEffect, useState } from 'react';
 import { BarChart, LineChart, PieChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Bar, BarChart as RechartsBarChart, Line, LineChart as RechartsLineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { useAppState } from '@/hooks/use-app-state';
+import type { MenuItem, Order } from '@/lib/types';
+import * as api from '@/lib/api';
+
 
 const salesData = [
-  { day: 'Lunes', sales: 2400 },
-  { day: 'Martes', sales: 1398 },
-  { day: 'Miércoles', sales: 9800 },
-  { day: 'Jueves', sales: 3908 },
-  { day: 'Viernes', sales: 4800 },
-  { day: 'Sábado', sales: 3800 },
-  { day: 'Domingo', sales: 4300 },
+  { day: 'Lunes', sales: 0 },
+  { day: 'Martes', sales: 0 },
+  { day: 'Miércoles', sales: 0 },
+  { day: 'Jueves', sales: 0 },
+  { day: 'Viernes', sales: 0 },
+  { day: 'Sábado', sales: 0 },
+  { day: 'Domingo', sales: 0 },
 ];
 
 const profitData = [
-    { month: 'Enero', profit: 12000 },
-    { month: 'Febrero', profit: 15000 },
-    { month: 'Marzo', profit: 18000 },
-    { month: 'Abril', profit: 17500 },
-    { month: 'Mayo', profit: 21000 },
-    { month: 'Junio', profit: 25000 },
+    { month: 'Enero', profit: 0 },
+    { month: 'Febrero', profit: 0 },
+    { month: 'Marzo', profit: 0 },
+    { month: 'Abril', profit: 0 },
+    { month: 'Mayo', profit: 0 },
+    { month: 'Junio', profit: 0 },
 ];
 
 export default function AdminDashboardPage() {
-  const { state } = useAppState();
-  const { menuItems, orders } = state;
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+    api.getOrders().then(setOrders);
+  }, []);
+
 
   const topSellingItems = [...menuItems]
-    .sort((a, b) => {
-        const salesA = orders.reduce((sum, order) => sum + (order.items.find(i => i.menuItemId === a.id)?.quantity || 0), 0);
-        const salesB = orders.reduce((sum, order) => sum + (order.items.find(i => i.menuItemId === b.id)?.quantity || 0), 0);
-        return salesB - salesA;
-    })
-    .slice(0, 5)
     .map(item => {
         const totalSold = orders.reduce((sum, order) => sum + (order.items.find(i => i.menuItemId === item.id)?.quantity || 0), 0);
         return { ...item, totalSold };
-    });
+    })
+    .sort((a, b) => b.totalSold - a.totalSold)
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -57,8 +62,8 @@ export default function AdminDashboardPage() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">S/.45,231.89</div>
-            <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
+            <div className="text-2xl font-bold">S/.0.00</div>
+            <p className="text-xs text-muted-foreground">Esperando datos...</p>
           </CardContent>
         </Card>
         <Card>
@@ -67,8 +72,8 @@ export default function AdminDashboardPage() {
             <LineChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">S/.12,890.45</div>
-            <p className="text-xs text-muted-foreground">+15.3% desde el mes pasado</p>
+            <div className="text-2xl font-bold">S/.0.00</div>
+             <p className="text-xs text-muted-foreground">Esperando datos...</p>
           </CardContent>
         </Card>
         <Card>
@@ -77,8 +82,8 @@ export default function AdminDashboardPage() {
             <PieChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">231</div>
-            <p className="text-xs text-muted-foreground">+5 desde ayer</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Esperando datos...</p>
           </CardContent>
         </Card>
       </div>
@@ -146,6 +151,13 @@ export default function AdminDashboardPage() {
                     <TableCell className="text-right">{item.totalSold}</TableCell>
                   </TableRow>
                 ))}
+                 {topSellingItems.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center py-10 text-muted-foreground">
+                            No hay datos de ventas disponibles.
+                        </TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
