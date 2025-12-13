@@ -1,5 +1,4 @@
 
-
 import type { User, MenuItem, Table, Order, Offer, Note, CalendarEvent } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 

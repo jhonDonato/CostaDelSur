@@ -28,6 +28,7 @@ type Action =
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
   | { type: 'SET_MENU_ITEMS'; payload: MenuItem[] }
+  | { type: 'REMOVE_MENU_ITEM'; payload: { menuItemId: string } }
   | { type: 'SET_OFFERS'; payload: Offer[] }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
@@ -195,19 +196,24 @@ const createReducer = (toast: (options: { title: string, description: string, va
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
     case 'SET_MENU_ITEMS': {
-       const newItems = action.payload.map(item => {
-        // Ensure published state corresponds to stock
-        let stock = item.stock;
-        if(item.published && stock === 0) stock = 1; // Give it at least 1 if published
-        if(!item.published) stock = 0; // Set stock to 0 if not published
-
+        let updatedItems = [...state.menuItems];
+        action.payload.forEach(newItem => {
+            const index = updatedItems.findIndex(item => item.id === newItem.id);
+            if (index !== -1) {
+                // Update existing item
+                updatedItems[index] = newItem;
+            } else {
+                // Add new item
+                updatedItems.push(newItem);
+            }
+        });
+        return { ...state, menuItems: updatedItems };
+    }
+    case 'REMOVE_MENU_ITEM': {
         return {
-            ...item,
-            id: item.id && !item.id.startsWith('new-') ? item.id : `menu-${Date.now()}-${Math.random()}`,
-            stock: stock,
-        }
-       });
-       return { ...state, menuItems: newItems };
+            ...state,
+            menuItems: state.menuItems.filter(item => item.id !== action.payload.menuItemId),
+        };
     }
      case 'SET_OFFERS': {
         const newOffers = action.payload.map(offer => ({
@@ -517,5 +523,3 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
-
-    
