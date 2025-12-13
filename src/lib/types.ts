@@ -45,7 +45,7 @@ export type Table = {
 export type Notification = {
   id: string;
   message: string;
-  type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due' | 'event-reminder';
+  type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due' | 'event-reminder' | 'new-order';
   timestamp: number;
   read: boolean;
   tableId?: number;
@@ -73,3 +73,4 @@ export type CalendarEvent = {
   date: Date;
   time: string;
 };
+

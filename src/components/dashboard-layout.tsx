@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/icons';
-import { LogOut } from 'lucide-react';
+import { LogOut, BellIcon, PhoneIncoming } from 'lucide-react';
 import { useAppState } from '@/hooks/use-app-state';
 import {
   DropdownMenu,
@@ -29,7 +29,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BellIcon } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -59,6 +58,11 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
     // Exact match is active.
     return pathname === itemHref;
   }
+  
+  const handleAcceptCall = (e: React.MouseEvent, tableId: number, notificationId: string) => {
+    e.stopPropagation();
+    dispatch({ type: 'ACCEPT_CALL', payload: { tableId, notificationId } });
+  };
 
   if (isLoading) {
     return <div>Cargando...</div>;
@@ -120,8 +124,8 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <BellIcon className="h-5 w-5" />
-                  {unreadNotifications.length > 0 && (
-                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadNotifications.length}</Badge>
+                  {notifications.length > 0 && (
+                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{notifications.length}</Badge>
                   )}
                   <span className="sr-only">Notificaciones</span>
                 </Button>
@@ -133,14 +137,30 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
                     <DropdownMenuItem disabled>No hay notificaciones</DropdownMenuItem>
                 ) : (
                     notifications.slice(0, 5).map(n => (
-                        <DropdownMenuItem key={n.id} onSelect={() => dispatch({type: 'DISMISS_NOTIFICATION', payload: {notificationId: n.id}})} className={`flex flex-col items-start gap-1 ${!n.read ? 'bg-secondary' : ''}`}>
+                        <DropdownMenuItem key={n.id} onSelect={(e) => e.preventDefault()} className={`flex flex-col items-start gap-1`}>
                            <p className="text-sm font-medium">{n.message}</p>
-                           <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(n.timestamp, { addSuffix: true, locale: es })}
-                           </p>
+                           <div className="w-full flex justify-between items-center">
+                                <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(n.timestamp, { addSuffix: true, locale: es })}
+                               </p>
+                               {n.type === 'call' && n.tableId && (
+                                   <Button size="xs" className="h-6 px-2" onClick={(e) => handleAcceptCall(e, n.tableId!, n.id)}>
+                                        <PhoneIncoming className="mr-1 h-3 w-3" />
+                                        Aceptar
+                                   </Button>
+                               )}
+                           </div>
                         </DropdownMenuItem>
                     ))
                 )}
+                 {notifications.length > 0 && (
+                    <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => notifications.forEach(n => dispatch({type: 'DISMISS_NOTIFICATION', payload: {notificationId: n.id}}))}>
+                        Limpiar todo
+                    </DropdownMenuItem>
+                    </>
+                 )}
               </DropdownMenuContent>
             </DropdownMenu>
 

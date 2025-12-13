@@ -21,6 +21,7 @@ type RestaurantState = {
 
 type Action =
   | { type: 'CALL_WAITER'; payload: { tableId: number } }
+  | { type: 'ACCEPT_CALL'; payload: { tableId: number, notificationId: string } }
   | { type: 'UPDATE_TABLE_STATUS'; payload: { tableId: number; status: TableStatus, orderId?: string | null } }
   | { type: 'CREATE_ORDER'; payload: { tableId: number; items: OrderItem[]; estimatedDeliveryTime: number } }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
@@ -54,7 +55,7 @@ const createReducer = (toast: (options: { title: string, description: string, va
         };
     case 'CALL_WAITER': {
       const newNotification: Notification = {
-        id: `notif-${Date.now()}`,
+        id: `notif-call-${action.payload.tableId}-${Date.now()}`,
         message: `Mesa ${action.payload.tableId} necesita atención!`,
         type: 'call',
         tableId: action.payload.tableId,
@@ -66,6 +67,15 @@ const createReducer = (toast: (options: { title: string, description: string, va
         notifications: [newNotification, ...state.notifications],
         tables: state.tables.map(table =>
           table.id === action.payload.tableId ? { ...table, status: 'needs-attention' } : table
+        ),
+      };
+    }
+     case 'ACCEPT_CALL': {
+      return {
+        ...state,
+        notifications: state.notifications.filter(n => n.id !== action.payload.notificationId),
+        tables: state.tables.map(table =>
+          table.id === action.payload.tableId ? { ...table, status: 'occupied' } : table
         ),
       };
     }
@@ -99,12 +109,22 @@ const createReducer = (toast: (options: { title: string, description: string, va
         }
         return menuItem;
       });
+      
+      const newNotification: Notification = {
+        id: `notif-new-order-${newOrder.id}`,
+        message: `Tienes un pedido para la mesa ${newOrder.tableId}.`,
+        type: 'new-order',
+        tableId: newOrder.tableId,
+        timestamp: Date.now(),
+        read: false,
+      };
 
       return {
         ...state,
         orders: [newOrder, ...state.orders],
         tables: newTables,
         menuItems: newMenuItems,
+        notifications: [newNotification, ...state.notifications],
       };
     }
     case 'UPDATE_ORDER_STATUS': {
@@ -193,7 +213,7 @@ const createReducer = (toast: (options: { title: string, description: string, va
     case 'DISMISS_NOTIFICATION':
         return {
             ...state,
-            notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
+            notifications: state.notifications.filter(n => n.id !== action.payload.notificationId)
         }
     case 'SET_MENU_ITEMS': {
         let updatedItems = [...state.menuItems];
@@ -220,10 +240,8 @@ const createReducer = (toast: (options: { title: string, description: string, va
         action.payload.forEach(newOffer => {
             const index = updatedOffers.findIndex(offer => offer.id === newOffer.id);
             if (index !== -1) {
-                // Update existing offer
                 updatedOffers[index] = newOffer;
             } else {
-                // Add new offer
                 updatedOffers.push(newOffer);
             }
         });
@@ -420,6 +438,9 @@ const initialState: RestaurantState = {
   calendarEvents: initialCalendarEvents,
 };
 
+// Define which notification types should trigger a voice alert
+const VOICE_NOTIFICATION_TYPES: Notification['type'][] = ['call', 'new-order', 'order-ready', 'delivery-due'];
+
 export function RestaurantProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [state, dispatch] = useReducer(createReducer(toast), initialState);
@@ -458,7 +479,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     state.notifications.forEach(n => {
-        if (!processedNotifications.has(n.id) && !n.read) {
+        if (!processedNotifications.has(n.id) && !n.read && VOICE_NOTIFICATION_TYPES.includes(n.type)) {
             playVoiceNotification(n.message);
             setProcessedNotifications(prev => new Set(prev).add(n.id));
         }
