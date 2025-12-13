@@ -46,7 +46,7 @@ export default function MenuEditorPage() {
   const form = useForm<z.infer<typeof menuFormSchema>>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
-      menuItems: state.menuItems,
+      menuItems: [],
     },
   });
   
@@ -61,8 +61,6 @@ export default function MenuEditorPage() {
   });
 
   const onSubmit = (data: z.infer<typeof menuFormSchema>) => {
-    // We replace the entire menu items array with the form data.
-    // The reducer will handle creating new IDs for new items.
     dispatch({ type: 'SET_MENU_ITEMS', payload: data.menuItems });
     toast({
       title: "Menú Actualizado",
