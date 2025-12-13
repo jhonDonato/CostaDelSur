@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
-import type { MenuItem } from '@/lib/types';
+import type { MenuItem, Offer } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import {
@@ -56,12 +56,14 @@ function CustomerMenuPageContent() {
   const tableQuery = searchParams.get('table');
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [isCallAlertOpen, setIsCallAlertOpen] = useState(false);
   const [tableNumberInput, setTableNumberInput] = useState('');
   const [activeTab, setActiveTab] = useState('Entradas');
 
   useEffect(() => {
     api.getMenuItems().then(items => setMenuItems(items.filter(item => item.published)));
+    api.getOffers().then(offerItems => setOffers(offerItems.filter(offer => offer.published)));
   }, []);
 
   const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];
@@ -102,6 +104,9 @@ function CustomerMenuPageContent() {
   const submitCallFromAlert = () => {
       handleCallWaiter();
   }
+  
+  const offersExist = offers.length > 0;
+  const offersLink = offersExist ? "/#ofertas" : "/";
 
 
   return (
@@ -130,7 +135,7 @@ function CustomerMenuPageContent() {
                 <div className="flex items-center gap-8 text-sm font-medium">
                     <Link href="/" className="text-white/80 hover:text-primary transition-colors">Inicio</Link>
                     <Link href="/menu" className="text-primary font-semibold border-b-2 border-primary pb-1">Menú</Link>
-                    <Link href="/#ofertas" className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
+                    <Link href={offersLink} className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
                     <Link href="/#reservas" className="text-white/80 hover:text-primary transition-colors">Reservas</Link>
                 </div>
             </nav>
