@@ -158,8 +158,8 @@ export default function HomePage() {
                 <div className="flex items-center gap-8 text-sm font-medium">
                     <Link href="/" className="text-primary font-semibold border-b-2 border-primary pb-1">Inicio</Link>
                     <Link href="/menu" className="text-white/80 hover:text-primary transition-colors">Menú</Link>
-                    <Link href="/#ofertas" className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
-                    <Link href="/#reservas" className="text-white/80 hover:text-primary transition-colors">Reservas</Link>
+                    <Link href="#ofertas" className="text-white/80 hover:text-primary transition-colors">Ofertas</Link>
+                    <Link href="#reservas" className="text-white/80 hover:text-primary transition-colors">Reservas</Link>
                 </div>
             </nav>
         </header>
@@ -369,3 +369,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
