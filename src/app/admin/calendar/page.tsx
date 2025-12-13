@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -37,8 +36,13 @@ const eventSchema = z.object({
 });
 
 export default function CalendarPage() {
-  const { state, dispatch } = useAppState();
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const { toast } = useToast();
+
+  // In a real app, fetch this from an API
+  // useEffect(() => {
+  //   api.getCalendarEvents().then(setCalendarEvents);
+  // }, []);
 
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
@@ -55,7 +59,7 @@ export default function CalendarPage() {
         id: `event-${Date.now()}`,
         ...data,
     };
-    dispatch({ type: 'ADD_EVENT', payload: newEvent });
+    setCalendarEvents(prev => [...prev, newEvent]);
     toast({
         title: "Evento Guardado",
         description: "Tu nuevo evento ha sido añadido al calendario.",
@@ -63,7 +67,7 @@ export default function CalendarPage() {
     form.reset({ title: '', description: '', date: new Date(), time: '12:00' });
   };
   
-  const upcomingEvents = state.calendarEvents
+  const upcomingEvents = calendarEvents
     .filter(event => new Date(event.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -92,6 +96,10 @@ export default function CalendarPage() {
     document.body.removeChild(link);
     toast({ title: "Exportación Exitosa", description: "Tus eventos han sido exportados a CSV." });
   };
+  
+  const removeEvent = (eventId: string) => {
+    setCalendarEvents(prev => prev.filter(event => event.id !== eventId));
+  }
 
   return (
     <TooltipProvider>
@@ -104,7 +112,7 @@ export default function CalendarPage() {
                 <p className="text-muted-foreground">Organiza tus actividades y recordatorios importantes.</p>
                 </div>
             </div>
-             <Button onClick={() => exportToCsv(state.calendarEvents)} disabled={state.calendarEvents.length === 0}>
+             <Button onClick={() => exportToCsv(calendarEvents)} disabled={calendarEvents.length === 0}>
                 <FileDown className="mr-2 h-4 w-4" />
                 Exportar Todo a CSV
             </Button>
@@ -248,7 +256,7 @@ export default function CalendarPage() {
                                         </Tooltip>
                                          <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="outline" size="icon" onClick={() => dispatch({type: 'REMOVE_EVENT', payload: { eventId: event.id }})}>
+                                                <Button variant="outline" size="icon" onClick={() => removeEvent(event.id)}>
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
                                             </TooltipTrigger>

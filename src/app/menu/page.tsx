@@ -61,7 +61,7 @@ function CustomerMenuPageContent() {
   const [activeTab, setActiveTab] = useState('Entradas');
 
   useEffect(() => {
-    api.getMenuItems().then(setMenuItems);
+    api.getMenuItems().then(items => setMenuItems(items.filter(item => item.published)));
   }, []);
 
   const categories: MenuItem['category'][] = ['Entradas', 'Platos Fuertes', 'Platos a la Carta', 'Bebidas', 'Postres'];

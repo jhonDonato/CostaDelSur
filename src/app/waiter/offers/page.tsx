@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -26,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import * as api from '@/lib/api';
 
 const offerSchema = z.object({
   id: z.string().optional(),
@@ -35,7 +35,7 @@ const offerSchema = z.object({
   published: z.boolean().default(true),
 });
 
-function OfferForm({ offer, onSave, onRemove }: { offer: Offer, onSave: (data: Offer) => void, onRemove: (id: string) => void }) {
+function OfferForm({ offer, onSave, onRemove }: { offer: Offer, onSave: (id: string, data: Offer) => void, onRemove: (id: string) => void }) {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -48,7 +48,7 @@ function OfferForm({ offer, onSave, onRemove }: { offer: Offer, onSave: (data: O
   });
 
   const onSubmit = (data: z.infer<typeof offerSchema>) => {
-    onSave({ ...data, id: offer.id });
+    onSave(offer.id, { ...data, id: offer.id });
     toast({
       title: "Oferta Guardada",
       description: `La oferta "${data.title}" ha sido guardada exitosamente.`,
@@ -192,14 +192,41 @@ function OfferForm({ offer, onSave, onRemove }: { offer: Offer, onSave: (data: O
 
 
 export default function OffersPage() {
-  const { state, dispatch } = useAppState();
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const { toast } = useToast();
 
-  const handleSave = (data: Offer) => {
-    dispatch({ type: 'SET_OFFERS', payload: [data] });
+  useEffect(() => {
+    api.getOffers().then(setOffers);
+  }, []);
+
+
+  const handleSave = async (id: string, data: Offer) => {
+    const isNew = id.startsWith('new-');
+    if (isNew) {
+      const newOffer = await api.createOffer(data);
+      setOffers(prev => [...prev.filter(o => o.id !== id), newOffer]);
+    } else {
+      const updatedOffer = await api.updateOffer(id, data);
+      if (updatedOffer) {
+        setOffers(prev => prev.map(o => o.id === id ? updatedOffer : o));
+      }
+    }
   };
 
-  const handleRemove = (id: string) => {
-    dispatch({ type: 'REMOVE_OFFER', payload: { offerId: id } });
+  const handleRemove = async (id: string) => {
+    const isNew = id.startsWith('new-');
+    if (isNew) {
+      setOffers(prev => prev.filter(o => o.id !== id));
+      toast({ title: "Oferta no guardada eliminada." });
+    } else {
+      const success = await api.deleteOffer(id);
+      if (success) {
+        setOffers(prev => prev.filter(o => o.id !== id));
+        toast({ title: "Oferta Eliminada", description: "La oferta ha sido eliminada exitosamente." });
+      } else {
+        toast({ title: "Error", description: "No se pudo eliminar la oferta.", variant: "destructive" });
+      }
+    }
   };
   
   const addNewOffer = () => {
@@ -210,10 +237,8 @@ export default function OffersPage() {
       image: 'https://picsum.photos/seed/new-offer/600/400',
       published: true,
     };
-    dispatch({ type: 'SET_OFFERS', payload: [newOffer] });
+    setOffers(prev => [...prev, newOffer]);
   };
-
-  const { offers } = state;
 
   return (
     <div className="space-y-6">

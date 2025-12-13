@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -27,6 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import * as api from '@/lib/api';
+
 
 const menuItemSchema = z.object({
   id: z.string().optional(),
@@ -46,7 +47,7 @@ const menuItemSchema = z.object({
 });
 
 
-function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (data: MenuItem) => void, onRemove: (id: string) => void }) {
+function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (id: string, data: MenuItem) => void, onRemove: (id: string) => void }) {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
@@ -67,7 +68,7 @@ function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (dat
 
 
   const onSubmit = (data: z.infer<typeof menuItemSchema>) => {
-    onSave({ ...data, id: item.id });
+    onSave(item.id, { ...data, id: item.id });
     toast({
       title: "Plato Guardado",
       description: `"${data.name}" ha sido guardado exitosamente.`,
@@ -215,14 +216,40 @@ function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (dat
 
 
 export default function MenuEditorPage() {
-  const { state, dispatch } = useAppState();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const { toast } = useToast();
 
-  const handleSave = (data: MenuItem) => {
-    dispatch({ type: 'SET_MENU_ITEMS', payload: [data] });
+  useEffect(() => {
+    api.getMenuItems().then(setMenuItems);
+  }, []);
+
+  const handleSave = async (id: string, data: MenuItem) => {
+    const isNew = id.startsWith('new-');
+    if (isNew) {
+      const newItem = await api.createMenuItem(data);
+      setMenuItems(prev => [...prev.filter(i => i.id !== id), newItem]);
+    } else {
+      const updatedItem = await api.updateMenuItem(id, data);
+      if (updatedItem) {
+        setMenuItems(prev => prev.map(item => item.id === id ? updatedItem : item));
+      }
+    }
   };
   
-  const handleRemove = (id: string) => {
-    dispatch({ type: 'REMOVE_MENU_ITEM', payload: { menuItemId: id } });
+  const handleRemove = async (id: string) => {
+    const isNew = id.startsWith('new-');
+    if (isNew) {
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+      toast({ title: "Plato no guardado eliminado." });
+    } else {
+      const success = await api.deleteMenuItem(id);
+      if (success) {
+        setMenuItems(prev => prev.filter(item => item.id !== id));
+        toast({ title: "Plato Eliminado", description: "El plato ha sido eliminado exitosamente." });
+      } else {
+        toast({ title: "Error", description: "No se pudo eliminar el plato.", variant: "destructive" });
+      }
+    }
   }
 
   const addNewDish = () => {
@@ -236,10 +263,8 @@ export default function MenuEditorPage() {
       image: 'https://picsum.photos/seed/placeholder/600/400',
       published: true,
     };
-    dispatch({ type: 'SET_MENU_ITEMS', payload: [newDish] });
+    setMenuItems(prev => [...prev, newDish]);
   };
-  
-  const { menuItems } = state;
 
   return (
     <div className="space-y-6">
@@ -275,5 +300,3 @@ export default function MenuEditorPage() {
     </div>
   );
 }
-
-    

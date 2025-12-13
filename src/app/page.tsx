@@ -112,7 +112,7 @@ export default function HomePage() {
   const [offers, setOffers] = useState<Offer[]>([]);
 
   useEffect(() => {
-    api.getMenuItems().then(items => setMenuItems(items.filter(item => item.stock > 0)));
+    api.getMenuItems().then(items => setMenuItems(items.filter(item => item.published && item.stock > 0)));
     api.getOffers().then(offers => setOffers(offers.filter(offer => offer.published)));
   }, []);
 

@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAppState } from '@/hooks/use-app-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -35,9 +34,14 @@ const noteSchema = z.object({
 });
 
 export default function NotesPage() {
-  const { state, dispatch } = useAppState();
+  const [notes, setNotes] = useState<Note[]>([]);
   const { toast } = useToast();
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+
+  // In a real app, you would fetch notes from an API
+  // useEffect(() => {
+  //   // api.getNotes().then(setNotes);
+  // }, []);
 
   const form = useForm<z.infer<typeof noteSchema>>({
     resolver: zodResolver(noteSchema),
@@ -53,7 +57,7 @@ export default function NotesPage() {
         createdAt: Date.now(),
         ...data,
     };
-    dispatch({ type: 'ADD_NOTE', payload: newNote });
+    setNotes(prev => [...prev, newNote]);
     toast({
         title: "Nota Guardada",
         description: "Tu nueva nota ha sido creada.",
@@ -67,8 +71,8 @@ export default function NotesPage() {
     window.open(whatsappUrl, '_blank');
   };
 
-  const exportToCsv = (notes: Note[]) => {
-    const data = notes.map(note => ({
+  const exportToCsv = (notesToExport: Note[]) => {
+    const data = notesToExport.map(note => ({
         'Titulo': note.title,
         'Contenido': note.content,
         'Fecha de Creacion': format(note.createdAt, 'yyyy-MM-dd HH:mm'),
@@ -78,7 +82,7 @@ export default function NotesPage() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    const fileName = notes.length > 1 ? `notas-${Date.now()}.csv` : `nota-${notes[0].id}.csv`;
+    const fileName = notesToExport.length > 1 ? `notas-${Date.now()}.csv` : `nota-${notesToExport[0].id}.csv`;
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
     link.click();
@@ -88,7 +92,7 @@ export default function NotesPage() {
   
   const confirmDelete = () => {
     if (noteToDelete) {
-        dispatch({type: 'REMOVE_NOTE', payload: {noteId: noteToDelete}});
+        setNotes(prev => prev.filter(note => note.id !== noteToDelete));
         toast({
             title: 'Nota eliminada',
             description: 'La nota ha sido eliminada correctamente.',
@@ -110,7 +114,7 @@ export default function NotesPage() {
                 <p className="text-muted-foreground">Crea, gestiona y exporta tus notas importantes.</p>
                 </div>
             </div>
-            <Button onClick={() => exportToCsv(state.notes)} disabled={state.notes.length === 0}>
+            <Button onClick={() => exportToCsv(notes)} disabled={notes.length === 0}>
                 <FileDown className="mr-2 h-4 w-4" />
                 Exportar Todo a CSV
             </Button>
@@ -161,9 +165,9 @@ export default function NotesPage() {
 
         <div className="md:col-span-2">
             <h2 className="text-2xl font-bold font-headline mb-4">Notas Guardadas</h2>
-            {state.notes.length > 0 ? (
+            {notes.length > 0 ? (
                 <div className="space-y-4">
-                    {state.notes.sort((a, b) => b.createdAt - a.createdAt).map(note => (
+                    {notes.sort((a, b) => b.createdAt - a.createdAt).map(note => (
                         <Card key={note.id}>
                             <CardHeader>
                                 <div className="flex justify-between items-start">
