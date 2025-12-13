@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -30,6 +29,7 @@ type Action =
   | { type: 'SET_MENU_ITEMS'; payload: MenuItem[] }
   | { type: 'REMOVE_MENU_ITEM'; payload: { menuItemId: string } }
   | { type: 'SET_OFFERS'; payload: Offer[] }
+  | { type: 'REMOVE_OFFER'; payload: { offerId: string } }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
   | { type: 'ADD_NOTE', payload: Note }
@@ -216,11 +216,24 @@ const createReducer = (toast: (options: { title: string, description: string, va
         };
     }
      case 'SET_OFFERS': {
-        const newOffers = action.payload.map(offer => ({
-            ...offer,
-            id: offer.id && !offer.id.startsWith('new-') ? offer.id : `offer-${Date.now()}-${Math.random()}`,
-        }));
-        return { ...state, offers: newOffers };
+        let updatedOffers = [...state.offers];
+        action.payload.forEach(newOffer => {
+            const index = updatedOffers.findIndex(offer => offer.id === newOffer.id);
+            if (index !== -1) {
+                // Update existing offer
+                updatedOffers[index] = newOffer;
+            } else {
+                // Add new offer
+                updatedOffers.push(newOffer);
+            }
+        });
+        return { ...state, offers: updatedOffers };
+    }
+    case 'REMOVE_OFFER': {
+        return {
+            ...state,
+            offers: state.offers.filter(offer => offer.id !== action.payload.offerId),
+        };
     }
     case 'SET_ORDER_TIMER':
         return {
