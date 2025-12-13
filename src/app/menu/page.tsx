@@ -106,7 +106,7 @@ function CustomerMenuPageContent() {
   }
   
   const offersExist = offers.length > 0;
-  const offersLink = offersExist ? "/?section=ofertas" : "/";
+  const offersLink = offersExist ? "/#ofertas" : "/";
 
 
   return (
@@ -246,3 +246,5 @@ export default function CustomerMenuPage() {
         </Suspense>
     )
 }
+
+    

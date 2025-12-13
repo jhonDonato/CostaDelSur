@@ -20,7 +20,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import * as api from '@/lib/api';
-import { ScrollToSection } from '@/components/scroll-to-section';
 
 
 function ReservationForm() {
@@ -138,7 +137,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ScrollToSection />
       <div className="dark">
         <header className="absolute top-0 z-50 w-full bg-gradient-to-b from-black/80 to-transparent">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 text-white">
@@ -371,6 +369,8 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
 
