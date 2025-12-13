@@ -51,7 +51,7 @@ export default function OffersPage() {
   });
 
   const onSubmit = (data: z.infer<typeof offersFormSchema>) => {
-    dispatch({ type: 'UPDATE_OFFER', payload: { offers: data.offers } });
+    dispatch({ type: 'SET_OFFERS', payload: data.offers });
     toast({
       title: "Ofertas Actualizadas",
       description: "Los cambios en las ofertas han sido guardados.",
@@ -187,3 +187,5 @@ export default function OffersPage() {
     </div>
   );
 }
+
+    

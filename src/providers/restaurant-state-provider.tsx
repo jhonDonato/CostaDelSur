@@ -27,8 +27,8 @@ type Action =
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
   | { type: 'UPDATE_STOCK'; payload: { menuItemId: string; newStock: number } }
   | { type: 'DISMISS_NOTIFICATION'; payload: { notificationId: string } }
-  | { type: 'UPDATE_MENU_ITEM'; payload: { menuItems: MenuItem[] } }
-  | { type: 'UPDATE_OFFER'; payload: { offers: Offer[] } }
+  | { type: 'SET_MENU_ITEMS'; payload: MenuItem[] }
+  | { type: 'SET_OFFERS'; payload: Offer[] }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'SET_ORDER_TIMER'; payload: { orderId: string, timerId: number } }
   | { type: 'ADD_NOTE', payload: Note }
@@ -194,11 +194,27 @@ const createReducer = (toast: (options: { title: string, description: string, va
             ...state,
             notifications: state.notifications.map(n => n.id === action.payload.notificationId ? {...n, read: true} : n)
         }
-    case 'UPDATE_MENU_ITEM': {
-       return { ...state, menuItems: action.payload.menuItems };
+    case 'SET_MENU_ITEMS': {
+       const newItems = action.payload.map(item => {
+        // Ensure published state corresponds to stock
+        let stock = item.stock;
+        if(item.published && stock === 0) stock = 1; // Give it at least 1 if published
+        if(!item.published) stock = 0; // Set stock to 0 if not published
+
+        return {
+            ...item,
+            id: item.id && !item.id.startsWith('new-') ? item.id : `menu-${Date.now()}-${Math.random()}`,
+            stock: stock,
+        }
+       });
+       return { ...state, menuItems: newItems };
     }
-     case 'UPDATE_OFFER': {
-        return { ...state, offers: action.payload.offers };
+     case 'SET_OFFERS': {
+        const newOffers = action.payload.map(offer => ({
+            ...offer,
+            id: offer.id && !offer.id.startsWith('new-') ? offer.id : `offer-${Date.now()}-${Math.random()}`,
+        }));
+        return { ...state, offers: newOffers };
     }
     case 'SET_ORDER_TIMER':
         return {
@@ -501,3 +517,5 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     </RestaurantContext.Provider>
   );
 }
+
+    
