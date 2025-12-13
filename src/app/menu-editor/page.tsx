@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -57,6 +57,14 @@ function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (dat
       image: item.image || 'https://picsum.photos/seed/placeholder/600/400'
     },
   });
+  
+  useEffect(() => {
+    form.reset({
+      ...item,
+      image: item.image || 'https://picsum.photos/seed/placeholder/600/400'
+    });
+  }, [item, form]);
+
 
   const onSubmit = (data: z.infer<typeof menuItemSchema>) => {
     onSave({ ...data, id: item.id });
@@ -224,7 +232,7 @@ export default function MenuEditorPage() {
       description: 'Describe este delicioso plato aquí...',
       price: 0,
       category: 'Platos a la Carta',
-      stock: 10,
+      stock: 0,
       image: 'https://picsum.photos/seed/placeholder/600/400',
       published: true,
     };
@@ -267,3 +275,5 @@ export default function MenuEditorPage() {
     </div>
   );
 }
+
+    

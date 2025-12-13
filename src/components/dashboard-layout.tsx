@@ -76,6 +76,15 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
     }
     return null;
   }
+  
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+        case 'admin': return 'Administrador';
+        case 'waiter': return 'Mesero';
+        case 'kitchen': return 'Cocinero(a)';
+        default: return role;
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -173,7 +182,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
                   </Avatar>
                   <div className="hidden md:flex flex-col items-start">
                     <span className="text-sm font-medium">{user.name}</span>
-                    <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                    <span className="text-xs text-muted-foreground capitalize">{getRoleDisplayName(user.role)}</span>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -192,3 +201,5 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
     </SidebarProvider>
   );
 }
+
+    
