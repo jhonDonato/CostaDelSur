@@ -43,7 +43,7 @@ function OfferForm({ offer, onSave, onRemove }: { offer: Offer, onSave: (id: str
     resolver: zodResolver(offerSchema),
     defaultValues: {
         ...offer,
-        image: offer.image || 'https://picsum.photos/seed/offer-placeholder/600/400'
+        image: offer.image || ''
     },
   });
 
@@ -204,7 +204,9 @@ export default function OffersPage() {
     const isNew = id.startsWith('new-');
     if (isNew) {
       const newOffer = await api.createOffer(data);
-      setOffers(prev => [...prev.filter(o => o.id !== id), newOffer]);
+      if(newOffer) {
+        setOffers(prev => [...prev.filter(o => o.id !== id), newOffer]);
+      }
     } else {
       const updatedOffer = await api.updateOffer(id, data);
       if (updatedOffer) {
@@ -234,7 +236,7 @@ export default function OffersPage() {
       id: `new-${Date.now()}`,
       title: 'Nueva Oferta',
       description: 'Describe esta increíble promoción aquí.',
-      image: 'https://picsum.photos/seed/new-offer/600/400',
+      image: '',
       published: true,
     };
     setOffers(prev => [...prev, newOffer]);

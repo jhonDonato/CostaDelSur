@@ -33,7 +33,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
     <Card className="overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-primary/20 bg-card border flex flex-col">
       <div className="relative h-48 w-full">
         <Image
-          src={item.image}
+          src={item.image || 'https://picsum.photos/seed/menu-item/600/400'}
           alt={item.name}
           fill
           className="object-cover rounded-t-md transition-transform duration-500 group-hover:scale-110"
@@ -97,7 +97,7 @@ function CustomerMenuPageContent() {
         title: "Llamada Enviada",
         description: `Un mesero atenderá la mesa ${tableId} pronto.`,
     });
-    setIsCall-alert-open(false);
+    setIsCallAlertOpen(false);
   };
   
   const submitCallFromAlert = () => {

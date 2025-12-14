@@ -226,7 +226,7 @@ export default function HomePage() {
                                 <Card className="overflow-hidden h-full group bg-card border shadow-sm">
                                     <div className="relative h-80 w-full">
                                         <Image
-                                            src={item.image}
+                                            src={item.image || 'https://picsum.photos/seed/menu-item/600/400'}
                                             alt={item.name}
                                             fill
                                             className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -268,7 +268,7 @@ export default function HomePage() {
                                     <Card className="overflow-hidden h-full group bg-card border shadow-sm">
                                         <div className="relative h-60 w-full">
                                             <Image
-                                                src={offer.image}
+                                                src={offer.image || 'https://picsum.photos/seed/offer/600/400'}
                                                 alt={offer.title}
                                                 fill
                                                 className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -307,7 +307,7 @@ export default function HomePage() {
                                       <Card className="overflow-hidden h-full group bg-card border shadow-sm">
                                           <div className="relative h-60 w-full">
                                               <Image
-                                                  src={item.image}
+                                                  src={item.image || 'https://picsum.photos/seed/menu-item/600/400'}
                                                   alt={item.name}
                                                   fill
                                                   className="object-cover transition-transform duration-500 group-hover:scale-110"

@@ -227,7 +227,9 @@ export default function MenuEditorPage() {
     const isNew = id.startsWith('new-');
     if (isNew) {
       const newItem = await api.createMenuItem(data);
-      setMenuItems(prev => [...prev.filter(i => i.id !== id), newItem]);
+      if (newItem) {
+        setMenuItems(prev => [...prev.filter(i => i.id !== id), newItem]);
+      }
     } else {
       const updatedItem = await api.updateMenuItem(id, data);
       if (updatedItem) {
@@ -260,7 +262,7 @@ export default function MenuEditorPage() {
       price: 0,
       category: 'Platos a la Carta',
       stock: 0,
-      image: 'https://picsum.photos/seed/placeholder/600/400',
+      image: '',
       published: true,
     };
     setMenuItems(prev => [...prev, newDish]);
