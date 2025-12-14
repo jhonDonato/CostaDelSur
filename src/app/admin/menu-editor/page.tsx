@@ -55,14 +55,14 @@ function MenuItemForm({ item, onSave, onRemove }: { item: MenuItem, onSave: (id:
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
       ...item,
-      image: item.image || 'https://picsum.photos/seed/placeholder/600/400'
+      image: item.image || ''
     },
   });
   
   useEffect(() => {
     form.reset({
       ...item,
-      image: item.image || 'https://picsum.photos/seed/placeholder/600/400'
+      image: item.image || ''
     });
   }, [item, form]);
 

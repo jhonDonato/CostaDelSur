@@ -12,7 +12,7 @@ export type MenuItem = {
   name: string;
   description: string;
   price: number;
-  image: string;
+  image?: string;
   stock: number;
   category: 'Entradas' | 'Platos Fuertes' | 'Platos a la Carta' | 'Bebidas' | 'Postres';
   published?: boolean;
@@ -73,3 +73,4 @@ export type CalendarEvent = {
   date: Date;
   time: string;
 };
+
