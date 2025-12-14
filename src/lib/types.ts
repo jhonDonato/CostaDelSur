@@ -55,7 +55,7 @@ export type Offer = {
   id: string;
   title: string;
   description: string;
-  image: string;
+  image?: string;
   published: boolean;
 };
 
@@ -73,4 +73,3 @@ export type CalendarEvent = {
   date: Date;
   time: string;
 };
-
