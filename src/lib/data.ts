@@ -15,7 +15,7 @@ export const menuItems: MenuItem[] = [];
 export const offers: Offer[] = [];
 
 export const tables: Table[] = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
+  id: (i + 1).toString(),
   status: 'free',
 }));
 
@@ -24,3 +24,4 @@ export const initialOrders: Order[] = [];
 export const initialNotes: Note[] = []
 
 export const initialCalendarEvents: CalendarEvent[] = [];
+
