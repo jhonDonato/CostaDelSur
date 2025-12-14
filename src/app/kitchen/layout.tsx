@@ -39,12 +39,9 @@ export default function KitchenLayout({
     { href: '/kitchen', label: 'Pedidos', icon: UtensilsCrossed },
   ];
 
-  if (user.role === 'waiter' || user.role === 'admin') {
-    navItems.push({ href: '/waiter', label: 'Mesas', icon: LayoutDashboard });
-  }
-
   if (user.role === 'admin') {
-      navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
+    navItems.push({ href: '/waiter', label: 'Mesas', icon: LayoutDashboard });
+    navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
   }
 
 
