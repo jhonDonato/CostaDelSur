@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import * as api from '@/lib/api';
 
-function TableCard({ tableId, status, onSelect }: { tableId: number; status: string; onSelect: () => void }) {
+function TableCard({ tableId, status, onSelect }: { tableId: string; status: string; onSelect: () => void }) {
   const statusConfig = {
     free: { text: 'Libre', color: 'bg-green-100 text-green-800 border-green-300', icon: CircleUserRound },
     occupied: { text: 'Ocupada', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: Utensils },
@@ -55,7 +55,7 @@ function TableCard({ tableId, status, onSelect }: { tableId: number; status: str
   );
 }
 
-function OrderSheet({ tableId, isOpen, onOpenChange, onOrderChange }: { tableId: number, isOpen: boolean, onOpenChange: (open: boolean) => void, onOrderChange: () => void }) {
+function OrderSheet({ tableId, isOpen, onOpenChange, onOrderChange }: { tableId: string, isOpen: boolean, onOpenChange: (open: boolean) => void, onOrderChange: () => void }) {
   const { toast } = useToast();
   
   const [existingOrder, setExistingOrder] = useState<Order | null>(null);
@@ -496,7 +496,7 @@ function OrderSheet({ tableId, isOpen, onOpenChange, onOrderChange }: { tableId:
 
 export default function WaiterDashboardPage() {
   const [tables, setTables] = useState<Table[]>([]);
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const fetchTables = () => {
       api.getTables().then(setTables);

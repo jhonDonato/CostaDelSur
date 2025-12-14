@@ -25,7 +25,7 @@ export type OrderItem = {
 
 export type Order = {
   id:string;
-  tableId: number;
+  tableId: string;
   items: OrderItem[];
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: number;
@@ -37,7 +37,7 @@ export type Order = {
 export type TableStatus = 'free' | 'occupied' | 'needs-attention';
 
 export type Table = {
-  id: number;
+  id: string;
   status: TableStatus;
   orderId?: string;
 };
@@ -48,7 +48,7 @@ export type Notification = {
   type: 'call' | 'low-stock' | 'order-ready' | 'delivery-due' | 'event-reminder' | 'new-order';
   timestamp: number;
   read: boolean;
-  tableId?: number;
+  tableId?: string;
 };
 
 export type Offer = {
@@ -73,4 +73,3 @@ export type CalendarEvent = {
   date: Date;
   time: string;
 };
-

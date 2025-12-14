@@ -99,15 +99,15 @@ export async function getTables(): Promise<Table[]> {
   return [...db.tables];
 }
 
-export async function getTableById(id: number): Promise<Table | undefined> {
+export async function getTableById(id: string): Promise<Table | undefined> {
     await wait();
-    return db.tables.find(t => t.id === id.toString());
+    return db.tables.find(t => t.id === id);
 }
 
 
-export async function updateTableStatus(tableId: number, status: TableStatus): Promise<Table | null> {
+export async function updateTableStatus(tableId: string, status: TableStatus): Promise<Table | null> {
     await wait();
-    const index = db.tables.findIndex(t => t.id === tableId.toString());
+    const index = db.tables.findIndex(t => t.id === tableId);
     if (index === -1) return null;
     db.tables[index].status = status;
     if (status === 'free') {
@@ -141,14 +141,14 @@ export async function getOrders(): Promise<Order[]> {
   return [...db.orders];
 }
 
-export async function getOrderByTableId(tableId: number): Promise<Order | null> {
+export async function getOrderByTableId(tableId: string): Promise<Order | null> {
     await wait();
-    const table = db.tables.find(t => t.id === tableId.toString());
+    const table = db.tables.find(t => t.id === tableId);
     if (!table || !table.orderId) return null;
     return db.orders.find(o => o.id === table.orderId) || null;
 }
 
-export async function createOrder(orderData: { tableId: number, items: OrderItem[], estimatedDeliveryTime: number }): Promise<Order | null> {
+export async function createOrder(orderData: { tableId: string, items: OrderItem[], estimatedDeliveryTime: number }): Promise<Order | null> {
     await wait();
     
     // Check stock
@@ -179,7 +179,7 @@ export async function createOrder(orderData: { tableId: number, items: OrderItem
     db.orders.push(newOrder);
 
     // Update table
-    const tableIndex = db.tables.findIndex(t => t.id === orderData.tableId.toString());
+    const tableIndex = db.tables.findIndex(t => t.id === orderData.tableId);
     if (tableIndex !== -1) {
         db.tables[tableIndex].status = 'occupied';
         db.tables[tableIndex].orderId = newOrder.id;
@@ -274,7 +274,7 @@ export async function cancelOrder(orderId: string): Promise<boolean> {
     }
 
     // Update table
-    const tableIndex = db.tables.findIndex(t => t.id === order.tableId.toString());
+    const tableIndex = db.tables.findIndex(t => t.id === order.tableId);
     if (tableIndex !== -1) {
         db.tables[tableIndex].status = 'free';
         db.tables[tableIndex].orderId = undefined;
@@ -303,9 +303,9 @@ async function createNotification(data: Omit<Notification, 'id' | 'timestamp' | 
     db.notifications.unshift(newNotif);
 }
 
-export async function callWaiter(tableId: number): Promise<void> {
+export async function callWaiter(tableId: string): Promise<void> {
     await wait();
-    const tableIndex = db.tables.findIndex(t => t.id === tableId.toString());
+    const tableIndex = db.tables.findIndex(t => t.id === tableId);
     if (tableIndex !== -1) {
         db.tables[tableIndex].status = 'needs-attention';
     }
@@ -316,9 +316,9 @@ export async function callWaiter(tableId: number): Promise<void> {
     });
 }
 
-export async function acceptCall(tableId: number, notificationId: string): Promise<void> {
+export async function acceptCall(tableId: string, notificationId: string): Promise<void> {
     await wait();
-    const tableIndex = db.tables.findIndex(t => t.id === tableId.toString());
+    const tableIndex = db.tables.findIndex(t => t.id === tableId);
     if (tableIndex !== -1 && db.tables[tableIndex].status === 'needs-attention') {
         db.tables[tableIndex].status = 'occupied';
     }

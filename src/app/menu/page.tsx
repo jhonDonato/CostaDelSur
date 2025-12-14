@@ -58,7 +58,7 @@ function CustomerMenuPageContent() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isCallAlertOpen, setIsCallAlertOpen] = useState(false);
-  const [tableNumberInput, setTableNumberInput] = useState('');
+  const [tableNumberInput, setTableNumberInput] = useState(tableQuery || '');
   const [activeTab, setActiveTab] = useState('Entradas');
 
   useEffect(() => {
@@ -85,9 +85,9 @@ function CustomerMenuPageContent() {
   [menuByCategory, displayCategories]);
 
   const handleCallWaiter = () => {
-    const tableId = tableQuery ? parseInt(tableQuery, 10) : parseInt(tableNumberInput, 10);
+    const tableId = tableNumberInput;
     
-    if(isNaN(tableId) || tableId <=0) {
+    if(!tableId) {
         setIsCallAlertOpen(true);
         return;
     }
@@ -97,11 +97,19 @@ function CustomerMenuPageContent() {
         title: "Llamada Enviada",
         description: `Un mesero atenderá la mesa ${tableId} pronto.`,
     });
-    setIsCallAlertOpen(false);
-    setTableNumberInput('');
+    setIsCall-alert-open(false);
   };
   
   const submitCallFromAlert = () => {
+      const tableId = tableNumberInput;
+      if (!tableId || isNaN(parseInt(tableId, 10)) || parseInt(tableId, 10) <= 0) {
+        toast({
+            title: "Número de Mesa Inválido",
+            description: "Por favor, ingrese un número de mesa válido.",
+            variant: "destructive"
+        });
+        return;
+      }
       handleCallWaiter();
   }
   
@@ -246,7 +254,3 @@ export default function CustomerMenuPage() {
         </Suspense>
     )
 }
-
-    
-
-    
