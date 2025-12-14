@@ -167,7 +167,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
                                 {formatDistanceToNow(n.timestamp, { addSuffix: true, locale: es })}
                                </p>
                                {n.type === 'call' && n.tableId && (
-                                   <Button size="xs" className="h-6 px-2" onClick={(e) => handleAcceptCall(e, n.tableId!, n.id)}>
+                                   <Button size="xs" onClick={(e) => handleAcceptCall(e, n.tableId!, n.id)}>
                                         <PhoneIncoming className="mr-1 h-3 w-3" />
                                         Aceptar
                                    </Button>
