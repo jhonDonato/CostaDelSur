@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -68,7 +69,7 @@ export function DashboardLayout({ children, navItems }: DashboardLayoutProps) {
     return pathname === itemHref;
   }
   
-  const handleAcceptCall = async (e: React.MouseEvent, tableId: number, notificationId: string) => {
+  const handleAcceptCall = async (e: React.MouseEvent, tableId: string, notificationId: string) => {
     e.stopPropagation();
     await api.acceptCall(tableId, notificationId);
     fetchNotifications();
